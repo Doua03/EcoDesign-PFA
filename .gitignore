@@ -1,0 +1,42 @@
+# ── Python ────────────────────────────────────────────
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.Python
+
+# ── Django ────────────────────────────────────────────
+*.sqlite3
+config/staticfiles/
+config/media/
+config/db.sqlite3
+
+# ── Environment variables ─────────────────────────────
+.env
+.env.local
+.env.production
+.env.development
+
+# ── React / Node ──────────────────────────────────────
+frontend/node_modules/
+frontend/build/
+frontend/.env
+frontend/.env.local
+
+# ── Idemat Excel (too large for GitHub) ───────────────
+config/idemat.xlsx
+
+# ── IDE ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ── OS files ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
