@@ -1,0 +1,249 @@
+/* ── Header container ── */
+.header { 
+  height: 70px; /* slightly taller for better spacing */
+  background: #ffffff;
+  border-bottom: 1px solid #dfe6e9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0 24px; /* add horizontal padding */
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* ── Left side (logo + search) ── */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header-logo img {
+  height: 50px; /* smaller, proportionate */
+  object-fit: contain;
+}
+
+/* ── Search bar ── */
+.header-search {
+  display: flex;
+  align-items: center;
+  background: #f1f2f6;
+  border: 1px solid #dfe6e9;
+  border-radius: 25px;
+  padding: 6px 16px;
+  gap: 8px;
+  width: 350px;
+  transition: all 0.2s ease;
+}
+
+.header-search input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 14px;
+  color: #636e72;
+  width: 100%;
+}
+
+.header-search:hover {
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+/* ── Right side (user info) ── */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.header-user:hover {
+  transform: translateY(-2px);
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #5EAA28;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.header-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-username {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.header-role {
+  font-size: 12px;
+  color: #636e72;
+  margin-top: 2px;
+}
+
+/* ── Responsive adjustments ── */
+@media (max-width: 768px) {
+  .header-search {
+    width: 200px;
+  }
+
+  .header-left {
+    gap: 12px;
+  }
+
+  .header-right {
+    gap: 12px;
+  }
+
+  .header-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+  }
+
+.header-username {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3436;
+  line-height: 1.2;
+}
+ 
+.header-role {
+  font-size: 11px;
+  color: #636e72;
+}
+}
+
+.header-user-wrapper {
+  position: relative;
+}
+ 
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+ 
+.header-user:hover {
+  background: #f8fafb;
+}
+ 
+.header-chevron {
+  font-size: 9px;
+  color: #636e72;
+  margin-left: 2px;
+}
+ 
+.header-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #dfe6e9;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  min-width: 240px;
+  z-index: 300;
+  overflow: hidden;
+  animation: dropIn 0.15s ease;
+}
+ 
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+ 
+.header-dropdown-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+ 
+.header-dropdown-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #2ecc71;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+ 
+.header-dropdown-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2d3436;
+}
+ 
+.header-dropdown-email {
+  font-size: 12px;
+  color: #636e72;
+  margin-top: 2px;
+}
+ 
+.header-dropdown-divider {
+  height: 1px;
+  background: #f1f2f6;
+  margin: 0;
+}
+ 
+.header-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2d3436;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+ 
+.header-dropdown-item:hover {
+  background: #f8fafb;
+}
+ 
+.header-dropdown-logout {
+  color: #e74c3c;
+}
+ 
+.header-dropdown-logout:hover {
+  background: #fdecea;
+}

@@ -1,0 +1,123 @@
+/* Signup.css - Matches image green theme */
+.signup-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0fdf6 0%, #eafaf1 100%);
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.signup-card {
+  background: #ffffff;
+  border: 1px solid #d8eddf;
+  border-radius: 20px;
+  padding: 48px 44px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 40px rgba(13, 31, 15, 0.08);
+}
+
+
+.signup-card h2 {
+  margin: 0 0 24px;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 600;
+}
+.signup-sub {
+  font-size: 14px;
+  color: #3d5140;
+  margin-bottom: 32px;
+  font-weight: 300;
+}
+.signup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.signup-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3d5140;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.signup-field input {
+  border: 1.5px solid #d8eddf;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 14px;
+  color: #0d1f0f;
+  outline: none;
+  transition: border 0.2s;
+  font-family: inherit;
+  background: #f8fdfb;
+}
+
+.signup-field input:focus {
+  border-color: #2ecc71;
+  background: #ffffff;
+}
+
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  width: auto;
+  margin-right: 8px;
+  margin-bottom: 0;
+}
+
+.signup-btn {
+  width: 100%;
+  background: #2ecc71;
+  color: #ffffff;
+  border: none;
+  border-radius: 100px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  margin-bottom: 20px;
+}
+.error {
+  color: #ef4444;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.signup-card p {
+  text-align: center;
+  margin-top: 20px;
+  color: #6b7280;
+  font-size: 14px;
+}
+.signup-switch {
+  text-align: center;
+  font-size: 14px;
+  color: #3d5140;
+}
+
+.signup-switch span {
+  color: #2ecc71;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.signup-switch span:hover {
+  color: #1a9e52;
+}

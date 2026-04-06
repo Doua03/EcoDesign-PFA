@@ -1,0 +1,25 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-left: 60px;        /* matches collapsed sidebar width */
+  margin-top: 70px;         /* matches header height */
+  min-width: 0;
+  transition: margin-left 0.25s ease; /* matches sidebar transition */
+}
+
+.app-main.sidebar-open {
+  margin-left: 200px;       /* matches expanded sidebar width */
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: #f9fafb;
+}

@@ -1,0 +1,141 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0fdf6 0%, #eafaf1 100%);
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+.login-card {
+  background: #ffffff;
+  border: 1px solid #d8eddf;
+  border-radius: 20px;
+  padding: 48px 44px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 40px rgba(13, 31, 15, 0.08);
+}
+
+
+/* Heading */
+.login-card h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0d1f0f;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  font-size: 14px;
+  color: #3d5140;
+  margin-bottom: 32px;
+  font-weight: 300;
+}
+
+/* Fields */
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.login-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3d5140;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login-field input {
+  border: 1.5px solid #d8eddf;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 14px;
+  color: #0d1f0f;
+  outline: none;
+  transition: border 0.2s;
+  font-family: inherit;
+  background: #f8fdfb;
+}
+
+.login-field input:focus {
+  border-color: #2ecc71;
+  background: #ffffff;
+}
+
+/* Forgot */
+.login-forgot {
+  text-align: right;
+  margin-bottom: 24px;
+}
+
+.login-forgot span {
+  font-size: 13px;
+  color: #2ecc71;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.login-forgot span:hover {
+  color: #1a9e52;
+}
+
+/* Error */
+.login-error {
+  background: #fdecea;
+  color: #e74c3c;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+/* Button */
+.login-btn {
+  width: 100%;
+  background: #2ecc71;
+  color: #ffffff;
+  border: none;
+  border-radius: 100px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  margin-bottom: 20px;
+}
+
+.login-btn:hover:not(:disabled) {
+  background: #1a9e52;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.35);
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Switch link */
+.login-switch {
+  text-align: center;
+  font-size: 14px;
+  color: #3d5140;
+}
+
+.login-switch span {
+  color: #2ecc71;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.login-switch span:hover {
+  color: #1a9e52;
+}

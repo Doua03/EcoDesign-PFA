@@ -1,0 +1,125 @@
+.sidebar {
+  width: 60px;
+  background: #ffffff;
+  border-right: 1px solid #dfe6e9;
+  display: flex;
+  flex-direction: column;
+  padding: 17px 0;
+  height: calc(100vh - 70px);  /* ← subtract header height */
+  position: fixed;
+  left: 0;
+  top: 70px;                   /* ← start below header */
+  z-index: 99;                 /* ← lower than header */
+  transition: width 0.25s ease;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.sidebar.open {
+  width: 200px;
+}
+
+/* Toggle button */
+.sidebar-toggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #5EAA28;
+  border: none;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+  position: relative;
+  z-index: 10;
+}
+
+.sidebar.open .sidebar-toggle {
+  margin-left: 16px;
+}
+
+.sidebar-divider {
+  width: calc(100% - 24px);
+  height: 1px;
+  background: #dfe6e9;
+  margin: 8px 12px;
+  flex-shrink: 0;
+}
+
+/* Nav */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+  flex: 1;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: #636e72;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-item:hover {
+  background: #eafaf1;
+  color: #5EAA28;
+}
+
+.sidebar-item.active {
+  background: #5EAA28;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.sidebar-item-icon {
+  font-size: 17px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar-item-label {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.sidebar.open .sidebar-item-label {
+  opacity: 1;
+}
+
+/* Bottom */
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.sidebar-item.danger {
+  color: #e74c3c;
+}
+
+.sidebar-item.danger:hover {
+  background: #fdecea;
+  color: #e74c3c;
+}
