@@ -73,7 +73,7 @@ class ScenarioMaterial(models.Model):
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
     quantity = models.FloatField(default=1)
-
+    is_packaging = models.BooleanField(default=False) 
     class Meta:
         db_table = 'scenario_material'
         unique_together = ['scenario', 'material']

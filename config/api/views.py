@@ -106,7 +106,6 @@ def material_subtypes(request):
     subtypes = (
         Material.objects
         .exclude(subtype="")
-        .exclude(subtype__in=["paper & packaging"])
         .values_list("subtype", flat=True)
         .distinct()
         .order_by("subtype")
@@ -401,7 +400,7 @@ def scenario_entries_to_dict(scenario):
         ScenarioMaterial.objects.filter(scenario=scenario)
         .select_related('material')
         .values('id', 'material_id', 'material__name', 'material__subtype',
-                'material__unit', 'quantity')
+                'material__unit', 'quantity', 'is_packaging')
     )
     energies = list(
         ScenarioEnergy.objects.filter(scenario=scenario)
@@ -526,18 +525,6 @@ def scenario_detail(request, scenario_id):
  
 @csrf_exempt
 def scenario_save(request, scenario_id):
-    """
-    POST /api/scenarios/<id>/save/
-    Body: {
-        materials:   [{ material_id, quantity }],
-        energies:    [{ energy_id,   quantity }],
-        transports:  [{ transport_id, distance }],
-        productions: [{ production_id, quantity }],
-        end_of_lives:[{ end_of_life_id, quantity }],
-    }
-    Clears existing entries then re-creates them (replace strategy).
-    Then calculates and stores the ImpactResult.
-    """
     user = get_user(request)
     if not user:
         return JsonResponse({'error': 'Not authenticated'}, status=401)
@@ -560,49 +547,61 @@ def scenario_save(request, scenario_id):
         ScenarioProduction.objects.filter(scenario=scenario).delete()
         ScenarioEndOfLife.objects.filter(scenario=scenario).delete()
  
-        total_eco_cost  = 0.0
-        total_carbon_kg = 0.0
+        mat_eco   = mat_co2   = 0.0
+        trans_eco = trans_co2 = 0.0
+        ener_eco  = ener_co2  = 0.0
+        prod_eco  = prod_co2  = 0.0
+        eol_eco   = eol_co2   = 0.0
  
         # ── 2. Materials ──
         for item in data.get('materials', []):
             mat = Material.objects.get(id=item['material_id'])
             qty = float(item.get('quantity', 0))
-            ScenarioMaterial.objects.create(scenario=scenario, material=mat, quantity=qty)
-            total_eco_cost  += mat.eco_cost  * qty
-            total_carbon_kg += mat.carbon_kg * qty
+            is_packaging = item.get('is_packaging', False)   # ← read the flag
+            ScenarioMaterial.objects.create(
+                scenario=scenario,
+                material=mat,
+                quantity=qty,
+                is_packaging=is_packaging,                   # ← save the flag
+            )
+            mat_eco += mat.eco_cost  * qty
+            mat_co2 += mat.carbon_kg * qty
  
         # ── 3. Energies ──
         for item in data.get('energies', []):
             en  = Energy.objects.get(id=item['energy_id'])
             qty = float(item.get('quantity', 0))
             ScenarioEnergy.objects.create(scenario=scenario, energy=en, quantity=qty)
-            total_eco_cost  += en.eco_cost  * qty
-            total_carbon_kg += en.carbon_kg * qty
+            ener_eco += en.eco_cost  * qty
+            ener_co2 += en.carbon_kg * qty
  
         # ── 4. Transports ──
         for item in data.get('transports', []):
             tr   = Transport.objects.get(id=item['transport_id'])
             dist = float(item.get('distance', 0))
             ScenarioTransport.objects.create(scenario=scenario, transport=tr, distance=dist)
-            total_eco_cost  += tr.eco_cost  * dist
-            total_carbon_kg += tr.carbon_kg * dist
+            trans_eco += tr.eco_cost  * dist
+            trans_co2 += tr.carbon_kg * dist
  
         # ── 5. Productions ──
         for item in data.get('productions', []):
             pr  = Production.objects.get(id=item['production_id'])
             qty = float(item.get('quantity', 0))
             ScenarioProduction.objects.create(scenario=scenario, production=pr, quantity=qty)
-            total_eco_cost  += pr.eco_cost  * qty
-            total_carbon_kg += pr.carbon_kg * qty
+            prod_eco += pr.eco_cost  * qty
+            prod_co2 += pr.carbon_kg * qty
  
         # ── 6. End of life ──
         for item in data.get('end_of_lives', []):
             eol = EndOfLife.objects.get(id=item['end_of_life_id'])
             qty = float(item.get('quantity', 0))
             ScenarioEndOfLife.objects.create(scenario=scenario, end_of_life=eol, quantity=qty)
-            total_eco_cost  += eol.eco_cost  * qty
-            total_carbon_kg += eol.carbon_kg * qty
+            eol_eco += eol.eco_cost  * qty
+            eol_co2 += eol.carbon_kg * qty
  
+        total_eco_cost  = mat_eco + trans_eco + ener_eco + prod_eco + eol_eco
+        total_carbon_kg = mat_co2 + trans_co2 + ener_co2 + prod_co2 + eol_co2
+
         # ── 7. Save ImpactResult ──
         product = Product.objects.filter(default_scenario=scenario, user=user).first()
         if not product:
@@ -610,7 +609,7 @@ def scenario_save(request, scenario_id):
             product = Product.objects.filter(user=user).first()
  
         if product:
-            impact, _ = ImpactResult.objects.update_or_create(
+           ImpactResult.objects.update_or_create(
                 scenario=scenario,
                 product=product,
                 defaults={
@@ -620,9 +619,23 @@ def scenario_save(request, scenario_id):
             )
  
         return JsonResponse({
-            'message':        'Scenario saved and calculated',
+            'message':         'Scenario saved and calculated',
             'total_eco_cost':  round(total_eco_cost,  4),
             'total_carbon_kg': round(total_carbon_kg, 4),
+            'breakdown': {
+                'materiaux':  round(mat_eco,   4),
+                'transport':  round(trans_eco, 4),
+                'energie':    round(ener_eco,  4),
+                'production': round(prod_eco,  4),
+                'fin_de_vie': round(eol_eco,   4),
+            },
+            'carbon_breakdown': {
+                'materiaux':  round(mat_co2,   4),
+                'transport':  round(trans_co2, 4),
+                'energie':    round(ener_co2,  4),
+                'production': round(prod_co2,  4),
+                'fin_de_vie': round(eol_co2,   4),
+            }
         })
  
     except Exception as e:

@@ -15,20 +15,30 @@ function useFetch(url) {
 }
 
 const api = {
-  get:    url        => fetch(url, { credentials: 'include' }).then(r => r.json()),
-  post:   (url, b)   => fetch(url, { method: 'POST',   credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json()),
-  put:    (url, b)   => fetch(url, { method: 'PUT',    credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json()),
-  delete: url        => fetch(url, { method: 'DELETE', credentials: 'include' }).then(r => r.json()),
+  get:    url      => fetch(url, { credentials: 'include' }).then(r => r.json()),
+  post:   (url, b) => fetch(url, { method: 'POST',   credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json()),
+  put:    (url, b) => fetch(url, { method: 'PUT',    credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json()),
+  delete: url      => fetch(url, { method: 'DELETE', credentials: 'include' }).then(r => r.json()),
+};
+
+/* ── Phase colors & labels ──────────────────────────── */
+const PHASE_COLORS = {
+  materiaux:  "#2ecc71",
+  transport:  "#fd79a8",
+  energie:    "#74b9ff",
+  production: "#a29bfe",
+  fin_de_vie: "#ffeaa7",
+};
+
+const PHASE_LABELS = {
+  materiaux:  "Matières premières",
+  transport:  "Transport",
+  energie:    "Énergie",
+  production: "Production",
+  fin_de_vie: "Fin de vie",
 };
 
 /* ── Donut chart ────────────────────────────────────── */
-const EMPTY_SEGMENTS = [
-  { label: "Matières premières", color: "#2ecc71", pct: 0 },
-  { label: "Transport",          color: "#fd79a8", pct: 0 },
-  { label: "Énergie",            color: "#74b9ff", pct: 0 },
-  { label: "Packaging",          color: "#ffeaa7", pct: 0 },
-];
-
 function DonutChart({ result }) {
   const r = 70, cx = 90, cy = 90, stroke = 28;
   const circ = 2 * Math.PI * r;
@@ -45,16 +55,51 @@ function DonutChart({ result }) {
   }
 
   const total = result.total_eco_cost;
-  let offset = 0;
+  const breakdown = result.breakdown || {};
+  const segments = Object.entries(breakdown)
+    .filter(([_, value]) => value > 0)
+    .map(([key, value]) => ({
+      key,
+      label: PHASE_LABELS[key],
+      color: PHASE_COLORS[key],
+      value,
+      pct: total > 0 ? (value / total) * 100 : 0,
+    }));
+
+  if (segments.length === 0) {
+    return (
+      <div className="pd-donut-wrapper">
+        <svg className="pd-donut-svg" viewBox="0 0 180 180">
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f2f6" strokeWidth={stroke} />
+        </svg>
+        <div className="pd-donut-center">
+          <span className="pd-donut-value">€0</span>
+          <span className="pd-donut-label">Éco-coût total</span>
+        </div>
+      </div>
+    );
+  }
+
+  let cumulativePct = 0;
 
   return (
     <div className="pd-donut-wrapper">
       <svg className="pd-donut-svg" viewBox="0 0 180 180">
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f2f6" strokeWidth={stroke} />
-        <circle cx={cx} cy={cy} r={r} fill="none"
-          stroke="#2ecc71" strokeWidth={stroke}
-          strokeDasharray={`${circ} 0`}
-          transform={`rotate(-90 ${cx} ${cy})`} />
+        {segments.map((s, i) => {
+          const dash   = (s.pct / 100) * circ;
+          const gap    = circ - dash;
+          const rotate = (cumulativePct / 100) * 360 - 90;
+          cumulativePct += s.pct;
+          return (
+            <circle key={i} cx={cx} cy={cy} r={r} fill="none"
+              stroke={s.color} strokeWidth={stroke}
+              strokeDasharray={`${dash} ${gap}`}
+              transform={`rotate(${rotate} ${cx} ${cy})`}
+              style={{ transition: 'all 0.5s ease' }}
+            />
+          );
+        })}
       </svg>
       <div className="pd-donut-center">
         <span className="pd-donut-value">€{total.toFixed(2)}</span>
@@ -80,7 +125,9 @@ function ProductModal({ product, onSave, onClose }) {
     setLoading(true); setError('');
     try {
       const body = { name: name.trim(), description: description.trim(), ...(!isEdit && { scenario_name: scenarioName.trim() }) };
-      const result = isEdit ? await api.put(`/api/products/${product.id}/`, body) : await api.post('/api/products/', body);
+      const result = isEdit
+        ? await api.put(`/api/products/${product.id}/`, body)
+        : await api.post('/api/products/', body);
       if (result.error) setError(result.error);
       else onSave(result);
     } catch { setError('Erreur serveur'); }
@@ -119,7 +166,9 @@ function ProductModal({ product, onSave, onClose }) {
           {error && <p className="pd-modal-error">{error}</p>}
           <div className="pd-modal-actions">
             <button type="button" className="pd-btn-cancel" onClick={onClose}>Annuler</button>
-            <button type="submit" className="pd-btn-save" disabled={loading}>{loading ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Créer')}</button>
+            <button type="submit" className="pd-btn-save" disabled={loading}>
+              {loading ? 'Enregistrement...' : (isEdit ? 'Modifier' : 'Créer')}
+            </button>
           </div>
         </form>
       </div>
@@ -190,7 +239,7 @@ function DeleteModal({ label, onConfirm, onClose }) {
 }
 
 /* ── Form row components ────────────────────────────── */
-function MaterialRow({ item, onUpdate, onRemove, label = "Matériau" }) {
+function MaterialRow({ item, onUpdate, onRemove }) {
   const subtypes  = useFetch("/api/materials/subtypes/");
   const materials = useFetch(item.subtype ? `/api/materials/by-subtype/?subtype=${encodeURIComponent(item.subtype)}` : "");
   return (
@@ -203,15 +252,21 @@ function MaterialRow({ item, onUpdate, onRemove, label = "Matériau" }) {
         </select>
       </div>
       <div className="pd-field">
-        <label>{label}</label>
+        <label>Matériau</label>
         <select value={item.material_id} disabled={!item.subtype}
           onChange={e => { const m = materials.find(m => m.id === parseInt(e.target.value)); onUpdate(item.id, "material_id", parseInt(e.target.value)); onUpdate(item.id, "unit", m?.unit || ""); }}>
           <option value="">-- Sélectionner --</option>
           {materials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
       </div>
-      <div className="pd-field field-sm"><label>Poids</label><input type="number" placeholder="0" value={item.weight} onChange={e => onUpdate(item.id, "weight", e.target.value)} /></div>
-      <div className="pd-field field-xs"><label>Unité</label><input value={item.unit} readOnly placeholder="—" /></div>
+      <div className="pd-field field-sm">
+        <label>Poids</label>
+        <input type="number" placeholder="0" value={item.weight} onChange={e => onUpdate(item.id, "weight", e.target.value)} />
+      </div>
+      <div className="pd-field field-xs">
+        <label>Unité</label>
+        <input value={item.unit} readOnly placeholder="—" />
+      </div>
       <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>🗑</button>
     </div>
   );
@@ -237,9 +292,18 @@ function TransportRow({ item, onUpdate, onRemove }) {
           {transports.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>
-      <div className="pd-field field-sm"><label>Poids</label><input type="number" placeholder="0" value={item.weight} onChange={e => onUpdate(item.id, "weight", e.target.value)} /></div>
-      <div className="pd-field field-sm"><label>Distance</label><input type="number" placeholder="0" value={item.distance} onChange={e => onUpdate(item.id, "distance", e.target.value)} /></div>
-      <div className="pd-field field-xs"><label>Unité</label><input value={item.unit} readOnly placeholder="—" /></div>
+      <div className="pd-field field-sm">
+        <label>Poids</label>
+        <input type="number" placeholder="0" value={item.weight} onChange={e => onUpdate(item.id, "weight", e.target.value)} />
+      </div>
+      <div className="pd-field field-sm">
+        <label>Distance</label>
+        <input type="number" placeholder="0" value={item.distance} onChange={e => onUpdate(item.id, "distance", e.target.value)} />
+      </div>
+      <div className="pd-field field-xs">
+        <label>Unité</label>
+        <input value={item.unit} readOnly placeholder="—" />
+      </div>
       <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>🗑</button>
     </div>
   );
@@ -265,8 +329,39 @@ function EnergyRow({ item, onUpdate, onRemove }) {
           {energies.map(en => <option key={en.id} value={en.id}>{en.name}</option>)}
         </select>
       </div>
-      <div className="pd-field field-sm"><label>Quantité</label><input type="number" placeholder="0" value={item.quantity} onChange={e => onUpdate(item.id, "quantity", e.target.value)} /></div>
-      <div className="pd-field field-xs"><label>Unité</label><input value={item.unit} readOnly placeholder="—" /></div>
+      <div className="pd-field field-sm">
+        <label>Quantité</label>
+        <input type="number" placeholder="0" value={item.quantity} onChange={e => onUpdate(item.id, "quantity", e.target.value)} />
+      </div>
+      <div className="pd-field field-xs">
+        <label>Unité</label>
+        <input value={item.unit} readOnly placeholder="—" />
+      </div>
+      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>🗑</button>
+    </div>
+  );
+}
+
+function PackagingRow({ item, onUpdate, onRemove }) {
+  const materials = useFetch("/api/materials/by-subtype/?subtype=paper%20%26%20packaging");
+  return (
+    <div className="pd-form-row">
+      <div className="pd-field">
+        <label>Matériau</label>
+        <select value={item.material_id}
+          onChange={e => { const m = materials.find(m => m.id === parseInt(e.target.value)); onUpdate(item.id, "material_id", parseInt(e.target.value)); onUpdate(item.id, "unit", m?.unit || ""); }}>
+          <option value="">-- Sélectionner --</option>
+          {materials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+        </select>
+      </div>
+      <div className="pd-field field-sm">
+        <label>Poids</label>
+        <input type="number" placeholder="0" value={item.weight} onChange={e => onUpdate(item.id, "weight", e.target.value)} />
+      </div>
+      <div className="pd-field field-xs">
+        <label>Unité</label>
+        <input value={item.unit} readOnly placeholder="—" />
+      </div>
       <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>🗑</button>
     </div>
   );
@@ -285,37 +380,43 @@ const emptyForm = () => ({
   packagings: [newPackaging()],
 });
 
-/* ── Helper: map saved DB entries back to form rows ─── */
+/* ── Map DB entries back to form rows ───────────────── */
 function dbEntriesToForm(entries) {
+  const allMaterials     = entries.materials || [];
+  const regularMaterials = allMaterials.filter(e => !e.is_packaging);
+  const packagingMaterials = allMaterials.filter(e => e.is_packaging);
+
   return {
-    materials: entries.materials.length > 0
-      ? entries.materials.map(e => ({ id: Date.now() + Math.random(), subtype: e.material__subtype, material_id: e.material_id, weight: e.quantity, unit: e.material__unit }))
+    materials: regularMaterials.length > 0
+      ? regularMaterials.map(e => ({ id: crypto.randomUUID(), subtype: e.material__subtype, material_id: e.material_id, weight: e.quantity, unit: e.material__unit }))
       : [newMaterial()],
+
+    packagings: packagingMaterials.length > 0
+      ? packagingMaterials.map(e => ({ id: crypto.randomUUID(), subtype: e.material__subtype, material_id: e.material_id, weight: e.quantity, unit: e.material__unit }))
+      : [newPackaging()],
+
     transports: entries.transports.length > 0
-      ? entries.transports.map(e => ({ id: Date.now() + Math.random(), subtype: e.transport__subtype, transport_id: e.transport_id, weight: 0, distance: e.distance, unit: e.transport__unit }))
+      ? entries.transports.map(e => ({ id: crypto.randomUUID(), subtype: e.transport__subtype, transport_id: e.transport_id, weight: 0, distance: e.distance, unit: e.transport__unit }))
       : [newTransport()],
+
     energies: entries.energies.length > 0
-      ? entries.energies.map(e => ({ id: Date.now() + Math.random(), subtype: e.energy__subtype, energy_id: e.energy_id, quantity: e.quantity, unit: e.energy__unit }))
+      ? entries.energies.map(e => ({ id: crypto.randomUUID(), subtype: e.energy__subtype, energy_id: e.energy_id, quantity: e.quantity, unit: e.energy__unit }))
       : [newEnergy()],
-    packagings: [newPackaging()],
   };
 }
 
 /* ── Main component ─────────────────────────────────── */
 export default function ProductDescription() {
-  const [products,      setProducts]      = useState([]);
-  const [activeProduct, setActiveProduct] = useState(null);
-  const [scenarios,     setScenarios]     = useState([]);
-  const [activeScenario,setActiveScenario]= useState(null);
-  const [impactResult,  setImpactResult]  = useState(null);
-  const [resultTab,     setResultTab]     = useState(0);
-  const [saving,        setSaving]        = useState(false);
-  const [saveMsg,       setSaveMsg]       = useState('');
+  const [products,       setProducts]       = useState([]);
+  const [activeProduct,  setActiveProduct]  = useState(null);
+  const [scenarios,      setScenarios]      = useState([]);
+  const [activeScenario, setActiveScenario] = useState(null);
+  const [impactResult,   setImpactResult]   = useState(null);
+  const [resultTab,      setResultTab]      = useState(0);
+  const [saving,         setSaving]         = useState(false);
+  const [saveMsg,        setSaveMsg]        = useState('');
+  const [form,           setForm]           = useState(emptyForm());
 
-  // Form state
-  const [form, setForm] = useState(emptyForm());
-
-  // Modals
   const [showCreateProduct,  setShowCreateProduct]  = useState(false);
   const [editProduct,        setEditProduct]         = useState(null);
   const [deleteProduct,      setDeleteProduct]       = useState(null);
@@ -339,7 +440,6 @@ export default function ProductDescription() {
     api.get(`/api/products/${activeProduct.id}/scenarios/`).then(data => {
       if (!data.error) {
         setScenarios(data);
-        // Default to the product's default scenario
         const def = data.find(s => s.is_default) || data[0];
         setActiveScenario(def || null);
       }
@@ -352,8 +452,7 @@ export default function ProductDescription() {
     api.get(`/api/scenarios/${activeScenario.id}/`).then(entries => {
       if (!entries.error) setForm(dbEntriesToForm(entries));
     });
-    // Load existing impact result if any
-    setImpactResult(null); // reset while loading
+    setImpactResult(null);
   }, [activeScenario]);
 
   /* ── Form helpers ── */
@@ -367,12 +466,25 @@ export default function ProductDescription() {
     if (!activeScenario) return;
     setSaving(true); setSaveMsg('');
 
+    const allMaterials = [
+      ...form.materials.filter(m => m.material_id).map(m => ({
+        material_id:  m.material_id,
+        quantity:     parseFloat(m.weight) || 0,
+        is_packaging: false,
+      })),
+      ...form.packagings.filter(m => m.material_id).map(m => ({
+        material_id:  m.material_id,
+        quantity:     parseFloat(m.weight) || 0,
+        is_packaging: true,
+      })),
+    ];
+
     const body = {
-      materials:   form.materials.filter(m => m.material_id).map(m => ({ material_id: m.material_id, quantity: parseFloat(m.weight) || 0 })),
-      energies:    form.energies.filter(e => e.energy_id).map(e => ({ energy_id: e.energy_id, quantity: parseFloat(e.quantity) || 0 })),
-      transports:  form.transports.filter(t => t.transport_id).map(t => ({ transport_id: t.transport_id, distance: parseFloat(t.distance) || 0 })),
-      productions: [],
-      end_of_lives:[],
+      materials:    allMaterials,
+      energies:     form.energies.filter(e => e.energy_id).map(e => ({ energy_id: e.energy_id, quantity: parseFloat(e.quantity) || 0 })),
+      transports:   form.transports.filter(t => t.transport_id).map(t => ({ transport_id: t.transport_id, distance: parseFloat(t.distance) || 0 })),
+      productions:  [],
+      end_of_lives: [],
     };
 
     const result = await api.post(`/api/scenarios/${activeScenario.id}/save/`, body);
@@ -412,7 +524,7 @@ export default function ProductDescription() {
   return (
     <div className="pd-page">
 
-      {/* Product tabs */}
+      {/* ── Product tabs ── */}
       <div className="pd-tabs-bar">
         <div className="pd-tabs">
           {products.map(p => (
@@ -429,6 +541,7 @@ export default function ProductDescription() {
         </div>
       </div>
 
+      {/* ── Empty state ── */}
       {!activeProduct ? (
         <div className="pd-empty">
           <div className="pd-empty-icon">📦</div>
@@ -437,6 +550,8 @@ export default function ProductDescription() {
           <button className="pd-btn-save" onClick={() => setShowCreateProduct(true)}>+ Créer un produit</button>
         </div>
       ) : (
+
+        /* ── Two columns ── */
         <div className="pd-columns">
 
           {/* ══ LEFT ══ */}
@@ -458,7 +573,10 @@ export default function ProductDescription() {
               {/* Matières premières */}
               <div className="pd-section">
                 <div className="pd-section-header">
-                  <div><p className="pd-section-title">Matières premières</p><p className="pd-section-desc">Matériaux utilisés dans la fabrication.</p></div>
+                  <div>
+                    <p className="pd-section-title">Matières premières</p>
+                    <p className="pd-section-desc">Matériaux utilisés dans la fabrication.</p>
+                  </div>
                   <button className="pd-add-btn" onClick={() => add('materials', newMaterial)}>+ Ajouter</button>
                 </div>
                 {form.materials.map(item => (
@@ -471,7 +589,10 @@ export default function ProductDescription() {
               {/* Transportation */}
               <div className="pd-section">
                 <div className="pd-section-header">
-                  <div><p className="pd-section-title">Transportation</p><p className="pd-section-desc">Moyens de transport et distances.</p></div>
+                  <div>
+                    <p className="pd-section-title">Transportation</p>
+                    <p className="pd-section-desc">Moyens de transport et distances.</p>
+                  </div>
                   <button className="pd-add-btn" onClick={() => add('transports', newTransport)}>+ Ajouter</button>
                 </div>
                 {form.transports.map(item => (
@@ -484,7 +605,10 @@ export default function ProductDescription() {
               {/* Énergie */}
               <div className="pd-section">
                 <div className="pd-section-header">
-                  <div><p className="pd-section-title">Énergie</p><p className="pd-section-desc">Énergies utilisées dans la fabrication.</p></div>
+                  <div>
+                    <p className="pd-section-title">Énergie</p>
+                    <p className="pd-section-desc">Énergies utilisées dans la fabrication.</p>
+                  </div>
                   <button className="pd-add-btn" onClick={() => add('energies', newEnergy)}>+ Ajouter</button>
                 </div>
                 {form.energies.map(item => (
@@ -497,11 +621,14 @@ export default function ProductDescription() {
               {/* Packaging */}
               <div className="pd-section">
                 <div className="pd-section-header">
-                  <div><p className="pd-section-title">Packaging</p><p className="pd-section-desc">Matériaux d'emballage utilisés.</p></div>
+                  <div>
+                    <p className="pd-section-title">Packaging</p>
+                    <p className="pd-section-desc">Matériaux d'emballage utilisés.</p>
+                  </div>
                   <button className="pd-add-btn" onClick={() => add('packagings', newPackaging)}>+ Ajouter</button>
                 </div>
                 {form.packagings.map(item => (
-                  <MaterialRow key={item.id} item={item} label="Emballage"
+                  <PackagingRow key={item.id} item={item}
                     onUpdate={(id, f, v) => update('packagings', id, f, v)}
                     onRemove={id => remove('packagings', id)} />
                 ))}
@@ -515,6 +642,7 @@ export default function ProductDescription() {
               {saving ? 'Calcul en cours...' : 'Commencez le calcul !'}
             </button>
           </div>
+          {/* ══ END LEFT ══ */}
 
           {/* ══ RIGHT ══ */}
           <div className="pd-right">
@@ -529,23 +657,46 @@ export default function ProductDescription() {
                 ))}
               </div>
 
+              <div className="pd-chart-header">
+                <span className="pd-chart-title">Impact par phase</span>
+              </div>
+
               <DonutChart result={impactResult} />
+
+              {impactResult?.breakdown && (
+                <div className="pd-legend">
+                  {Object.entries(impactResult.breakdown)
+                    .filter(([_, v]) => v > 0)
+                    .map(([key, value]) => {
+                      const total = impactResult.total_eco_cost;
+                      const pct   = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                      return (
+                        <div key={key} className="pd-legend-item">
+                          <div className="pd-legend-dot" style={{ background: PHASE_COLORS[key] }} />
+                          <span className="pd-legend-label">{PHASE_LABELS[key]}</span>
+                          <span className="pd-legend-value">€{value.toFixed(2)} ({pct}%)</span>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
 
               {impactResult && (
                 <div className="pd-impact-summary">
                   <div className="pd-impact-item">
                     <span className="pd-impact-label">Éco-coût total</span>
-                    <span className="pd-impact-value green">€{impactResult.total_eco_cost}</span>
+                    <span className="pd-impact-value green">€{impactResult.total_eco_cost.toFixed(2)}</span>
                   </div>
                   <div className="pd-impact-item">
                     <span className="pd-impact-label">Empreinte carbone</span>
-                    <span className="pd-impact-value blue">{impactResult.total_carbon_kg} kg CO₂</span>
+                    <span className="pd-impact-value blue">{impactResult.total_carbon_kg.toFixed(2)} kg CO₂</span>
                   </div>
                 </div>
               )}
             </div>
+            {/* END results card */}
 
-            {/* ── Scenario switcher ── */}
+            {/* Scenario panel */}
             <div className="pd-scenario-panel">
               <div className="pd-scenario-panel-header">
                 <h3>Scénarios</h3>
@@ -554,7 +705,6 @@ export default function ProductDescription() {
               <p className="pd-scenario-panel-desc">
                 Chaque scénario représente une configuration ACV différente pour <strong>{activeProduct.name}</strong>.
               </p>
-
               <div className="pd-scenario-list">
                 {scenarios.map(s => (
                   <div key={s.id}
@@ -574,23 +724,30 @@ export default function ProductDescription() {
                     )}
                   </div>
                 ))}
-
                 {scenarios.length === 0 && (
                   <p className="pd-scenario-empty">Aucun scénario trouvé.</p>
                 )}
               </div>
             </div>
+            {/* END scenario panel */}
 
           </div>
-        </div>
-      )}
+          {/* ══ END RIGHT ══ */}
 
-      {/* Modals */}
+        </div>
+        /* END pd-columns */
+
+      )}
+      {/* END ternary */}
+
+      {/* ── Modals ── */}
       {showCreateProduct  && <ProductModal onSave={handleCreateProduct} onClose={() => setShowCreateProduct(false)} />}
       {editProduct        && <ProductModal product={editProduct} onSave={handleEditProduct} onClose={() => setEditProduct(null)} />}
       {deleteProduct      && <DeleteModal label={deleteProduct.name} onConfirm={handleDeleteProduct} onClose={() => setDeleteProduct(null)} />}
       {showCreateScenario && <ScenarioModal onSave={handleCreateScenario} onClose={() => setShowCreateScenario(false)} />}
       {deleteScenario     && <DeleteModal label={deleteScenario.name} onConfirm={handleDeleteScenario} onClose={() => setDeleteScenario(null)} />}
+
     </div>
+    /* END pd-page */
   );
 }
