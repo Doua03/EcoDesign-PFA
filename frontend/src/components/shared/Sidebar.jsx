@@ -1,17 +1,18 @@
 import { useState } from "react";
+import { BarChart2, LayoutDashboard, Heart, Clock, Tag, Settings, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import "./Sidebar.css";
 
 const navItems = [
-  { icon: "📊", label: "Calcul ACV",      active: true },
-  { icon: "⊞",  label: "Tableau de bords" },
-  { icon: "♥",  label: "Favorites" },
-  { icon: "🕐", label: "Historique" },
-  { icon: "💲", label: "Tarification" },
+  { Icon: BarChart2,       label: "Calcul ACV",       active: true },
+  { Icon: LayoutDashboard, label: "Tableau de bords" },
+  { Icon: Heart,           label: "Favorites" },
+  { Icon: Clock,           label: "Historique" },
+  { Icon: Tag,             label: "Tarification" },
 ];
 
 const bottomItems = [
-  { icon: "⚙",  label: "Settings" },
-  { icon: "⏻",  label: "Logout", danger: true },
+  { Icon: Settings, label: "Settings" },
+  { Icon: LogOut,   label: "Logout", danger: true },
 ];
 
 export default function Sidebar({ onToggle }) {
@@ -28,17 +29,17 @@ export default function Sidebar({ onToggle }) {
 
       {/* Toggle button */}
       <button className="sidebar-toggle" onClick={toggle}>
-        {open ? "‹" : "›"}
+        {open ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
       </button>
 
       <div className="sidebar-divider" />
 
       {/* Main nav */}
       <nav className="sidebar-nav">
-        {navItems.map((item, i) => (
-          <button key={i} className={`sidebar-item ${item.active ? "active" : ""}`}>
-            <span className="sidebar-item-icon">{item.icon}</span>
-            <span className="sidebar-item-label">{item.label}</span>
+        {navItems.map(({ Icon, label, active }, i) => (
+          <button key={i} className={`sidebar-item ${active ? "active" : ""}`}>
+            <span className="sidebar-item-icon"><Icon size={18} /></span>
+            <span className="sidebar-item-label">{label}</span>
           </button>
         ))}
       </nav>
@@ -46,10 +47,10 @@ export default function Sidebar({ onToggle }) {
       {/* Bottom nav */}
       <div className="sidebar-divider" />
       <div className="sidebar-bottom">
-        {bottomItems.map((item, i) => (
-          <button key={i} className={`sidebar-item ${item.danger ? "danger" : ""}`}>
-            <span className="sidebar-item-icon">{item.icon}</span>
-            <span className="sidebar-item-label">{item.label}</span>
+        {bottomItems.map(({ Icon, label, danger }, i) => (
+          <button key={i} className={`sidebar-item ${danger ? "danger" : ""}`}>
+            <span className="sidebar-item-icon"><Icon size={18} /></span>
+            <span className="sidebar-item-label">{label}</span>
           </button>
         ))}
       </div>

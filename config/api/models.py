@@ -26,7 +26,7 @@ class Product(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    default_scenario = models.ForeignKey("Scenario", on_delete=models.SET_NULL, null=True, blank=True)
+    default_scenario = models.ForeignKey("Scenario", on_delete=models.SET_NULL, null=True, blank=True, related_name='default_for_products')
 
     class Meta:
         db_table = 'product'
@@ -42,6 +42,7 @@ class Product(models.Model):
 # =========================
 class Scenario(models.Model):
     name = models.CharField(max_length=100)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True, related_name='scenarios')
 
     class Meta:
         db_table = 'scenario'

@@ -319,8 +319,11 @@ def product_list_create(request):
                 name=name,
                 description=description,
                 user=user,
-                default_scenario=scenario       
-             )
+                default_scenario=scenario,
+            )
+            # Link the default scenario back to the product
+            scenario.product = product
+            scenario.save()
             return JsonResponse(product_to_dict(product), status=201)
 
         except Exception as e:
@@ -450,19 +453,17 @@ def scenario_list_create(request, product_id):
  
     # GET → list all scenarios for this product
     if request.method == 'GET':
-        # Collect all scenario IDs linked to this product through junction tables
-        scenario_ids = set()
-        scenario_ids.update(ScenarioMaterial.objects.filter(scenario__in=_product_scenario_ids(product)).values_list('scenario_id', flat=True))
-        scenario_ids.update(ScenarioEnergy.objects.filter(scenario__in=_product_scenario_ids(product)).values_list('scenario_id', flat=True))
-        scenario_ids.update(ScenarioTransport.objects.filter(scenario__in=_product_scenario_ids(product)).values_list('scenario_id', flat=True))
- 
-        # Always include default scenario even if empty
-        scenarios = Scenario.objects.filter(
-            id__in=list(scenario_ids) + ([product.default_scenario_id] if product.default_scenario_id else [])
-        ).distinct().order_by('id')
- 
+        # Primary: scenarios with the product FK set
+        linked_ids = set(Scenario.objects.filter(product=product).values_list('id', flat=True))
+        # Also include the default scenario (handles legacy data)
+        if product.default_scenario_id:
+            linked_ids.add(product.default_scenario_id)
+        # Also include any scenarios linked via ImpactResult (further legacy safety)
+        linked_ids.update(ImpactResult.objects.filter(product=product).values_list('scenario_id', flat=True))
+
+        scenarios = Scenario.objects.filter(id__in=linked_ids).order_by('id')
         return JsonResponse([scenario_to_dict(s, product) for s in scenarios], safe=False)
- 
+
     # POST → create a new scenario for this product
     if request.method == 'POST':
         try:
@@ -470,24 +471,18 @@ def scenario_list_create(request, product_id):
             name = data.get('name', '').strip()
             if not name:
                 return JsonResponse({'error': 'Scenario name is required'}, status=400)
- 
-            scenario = Scenario.objects.create(name=name)
+
+            scenario = Scenario.objects.create(name=name, product=product)
             return JsonResponse(scenario_to_dict(scenario, product), status=201)
- 
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
  
     return JsonResponse({'error': 'Method not allowed'}, status=405)
  
  
-def _product_scenario_ids(product):
-    """Return all scenario IDs that belong to a product (default + any linked)."""
-    ids = []
-    if product.default_scenario_id:
-        ids.append(product.default_scenario_id)
-    return ids
- 
- 
+
+
 # ── GET entries / SAVE entries / DELETE a scenario ───────────────────────────
  
 @csrf_exempt
@@ -521,6 +516,58 @@ def scenario_detail(request, scenario_id):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
  
  
+# ── GET stored impact result for a scenario ──────────────────────────────────
+
+def scenario_result(request, scenario_id):
+    user = get_user(request)
+    if not user:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+
+    try:
+        scenario = Scenario.objects.get(id=scenario_id)
+    except Scenario.DoesNotExist:
+        return JsonResponse({'error': 'Scenario not found'}, status=404)
+
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    try:
+        ir = ImpactResult.objects.get(scenario=scenario)
+    except ImpactResult.DoesNotExist:
+        return JsonResponse({'error': 'No result'}, status=404)
+
+    breakdown, carbon_breakdown = _compute_scenario_breakdown(scenario)
+    return JsonResponse({
+        'total_eco_cost':   ir.total_eco_cost,
+        'total_carbon_kg':  ir.total_carbon_kg,
+        'breakdown':        breakdown,
+        'carbon_breakdown': carbon_breakdown,
+    })
+
+
+# ── ML recommendations for a scenario ────────────────────────────────────────
+
+def scenario_recommendations(request, scenario_id):
+    user = get_user(request)
+    if not user:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+
+    try:
+        scenario = Scenario.objects.get(id=scenario_id)
+    except Scenario.DoesNotExist:
+        return JsonResponse({'error': 'Scenario not found'}, status=404)
+
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    try:
+        from .ml.recommender import generate_recommendations
+        recs = generate_recommendations(scenario)
+        return JsonResponse(recs, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 # ── SAVE all entries for a scenario (called on "Commencez le calcul") ─────────
  
 @csrf_exempt
@@ -637,6 +684,81 @@ def scenario_save(request, scenario_id):
                 'fin_de_vie': round(eol_co2,   4),
             }
         })
- 
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+def _compute_scenario_breakdown(scenario):
+    mat_eco = mat_co2 = 0.0
+    for sm in ScenarioMaterial.objects.filter(scenario=scenario).select_related('material'):
+        mat_eco += sm.material.eco_cost  * sm.quantity
+        mat_co2 += sm.material.carbon_kg * sm.quantity
+
+    trans_eco = trans_co2 = 0.0
+    for st in ScenarioTransport.objects.filter(scenario=scenario).select_related('transport'):
+        trans_eco += st.transport.eco_cost  * st.distance
+        trans_co2 += st.transport.carbon_kg * st.distance
+
+    ener_eco = ener_co2 = 0.0
+    for se in ScenarioEnergy.objects.filter(scenario=scenario).select_related('energy'):
+        ener_eco += se.energy.eco_cost  * se.quantity
+        ener_co2 += se.energy.carbon_kg * se.quantity
+
+    prod_eco = prod_co2 = 0.0
+    for sp in ScenarioProduction.objects.filter(scenario=scenario).select_related('production'):
+        prod_eco += sp.production.eco_cost  * sp.quantity
+        prod_co2 += sp.production.carbon_kg * sp.quantity
+
+    eol_eco = eol_co2 = 0.0
+    for se in ScenarioEndOfLife.objects.filter(scenario=scenario).select_related('end_of_life'):
+        eol_eco += se.end_of_life.eco_cost  * se.quantity
+        eol_co2 += se.end_of_life.carbon_kg * se.quantity
+
+    return (
+        {
+            'materiaux':  round(mat_eco,   4),
+            'transport':  round(trans_eco, 4),
+            'energie':    round(ener_eco,  4),
+            'production': round(prod_eco,  4),
+            'fin_de_vie': round(eol_eco,   4),
+        },
+        {
+            'materiaux':  round(mat_co2,   4),
+            'transport':  round(trans_co2, 4),
+            'energie':    round(ener_co2,  4),
+            'production': round(prod_co2,  4),
+            'fin_de_vie': round(eol_co2,   4),
+        }
+    )
+
+
+@csrf_exempt
+def product_compare(request, product_id):
+    user = get_user(request)
+    if not user:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+
+    try:
+        product = Product.objects.get(id=product_id, user=user)
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    results = ImpactResult.objects.filter(product=product).select_related('scenario')
+    data = []
+    for ir in results:
+        breakdown, carbon_breakdown = _compute_scenario_breakdown(ir.scenario)
+        data.append({
+            'id':               ir.scenario.id,
+            'name':             ir.scenario.name,
+            'is_default':       product.default_scenario_id == ir.scenario.id,
+            'total_eco_cost':   ir.total_eco_cost,
+            'total_carbon_kg':  ir.total_carbon_kg,
+            'breakdown':        breakdown,
+            'carbon_breakdown': carbon_breakdown,
+        })
+
+    return JsonResponse(data, safe=False)

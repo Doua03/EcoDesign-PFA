@@ -14,6 +14,9 @@ urlpatterns = [
     path('products/<int:product_id>/scenarios/',  views.scenario_list_create, name='scenario-list-create'),
     path('scenarios/<int:scenario_id>/',          views.scenario_detail,      name='scenario-detail'),
     path('scenarios/<int:scenario_id>/save/',     views.scenario_save,        name='scenario-save'),
+    path('scenarios/<int:scenario_id>/result/',           views.scenario_result,          name='scenario-result'),
+    path('scenarios/<int:scenario_id>/recommendations/', views.scenario_recommendations, name='scenario-recommendations'),
+    path('products/<int:product_id>/compare/',    views.product_compare,      name='product-compare'),
 
      # Materials
     path("materials/subtypes/",      views.material_subtypes,      name="material-subtypes"),

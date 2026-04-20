@@ -1,8 +1,9 @@
 /* ── Header container ── */
-.header { 
-  height: 70px; /* slightly taller for better spacing */
+.header {
+  height: 70px;
   background: #ffffff;
   border-bottom: 1px solid #dfe6e9;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,11 +41,19 @@
   transition: all 0.2s ease;
 }
 
+.header-search-icon {
+  display: flex;
+  align-items: center;
+  color: #636e72;
+  flex-shrink: 0;
+}
+
 .header-search input {
   border: none;
   background: none;
   outline: none;
   font-size: 14px;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
   color: #636e72;
   width: 100%;
 }
@@ -156,7 +165,8 @@
 }
  
 .header-chevron {
-  font-size: 9px;
+  display: flex;
+  align-items: center;
   color: #636e72;
   margin-left: 2px;
 }
