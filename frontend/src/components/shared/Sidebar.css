@@ -2,6 +2,7 @@
   width: 60px;
   background: #ffffff;
   border-right: 1px solid #dfe6e9;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
   display: flex;
   flex-direction: column;
   padding: 17px 0;
@@ -91,10 +92,11 @@
 }
 
 .sidebar-item-icon {
-  font-size: 17px;
   flex-shrink: 0;
   width: 20px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar-item-label {

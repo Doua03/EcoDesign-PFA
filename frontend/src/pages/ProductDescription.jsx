@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import "./ProductDescription.css";
+import {
+  Leaf, Truck, Zap, Factory, Recycle, Layers,
+  Trash2, BarChart2, Search, RefreshCw, CheckCircle,
+  TrendingDown, DollarSign, X, Star, Folder,
+} from "lucide-react";
 
 /* ── API helpers ────────────────────────────────────── */
 function useFetch(url) {
@@ -47,7 +52,7 @@ function DonutChart({ result }) {
     return (
       <div className="pd-donut-wrapper">
         <div className="pd-donut-empty">
-          <span>🌿</span>
+          <Leaf size={36} color="#a9dfbf" strokeWidth={1.5} />
           <p>Lancez le calcul pour voir les résultats</p>
         </div>
       </div>
@@ -109,6 +114,237 @@ function DonutChart({ result }) {
   );
 }
 
+/* ── Recommendations components ─────────────────────── */
+const PHASE_ICONS = {
+  materiaux:  <Layers  size={13} />,
+  transport:  <Truck   size={13} />,
+  energie:    <Zap     size={13} />,
+  production: <Factory size={13} />,
+  fin_de_vie: <Recycle size={13} />,
+};
+
+function RecoCard({ rec, rank }) {
+  const truncate = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+  return (
+    <div className={`pd-reco-item ${rank <= 3 ? 'top' : ''}`}>
+      <div className="pd-reco-rank">{rank}</div>
+      <div className="pd-reco-body">
+        <div className="pd-reco-phase">
+          <span className="pd-reco-phase-icon">{PHASE_ICONS[rec.phase] || <Layers size={13} />}</span>
+          <span className="pd-reco-phase-label"
+                style={{ color: PHASE_COLORS[rec.phase] || '#636e72' }}>
+            {rec.phase_label}
+          </span>
+          <div className="pd-reco-savings-inline">
+            <span className="pd-reco-save-co2">-{rec.co2_saving.toFixed(2)} kg CO₂</span>
+            <span className="pd-reco-save-pct">-{rec.improvement_pct}%</span>
+          </div>
+        </div>
+
+        {/* Conseil — natural language advice */}
+        <p className="pd-reco-conseil">{rec.conseil}</p>
+
+        <div className="pd-reco-subst">
+          <span className="pd-reco-cur" title={rec.current_name}>{truncate(rec.current_name, 42)}</span>
+          <span className="pd-reco-arrow">→</span>
+          <span className="pd-reco-alt" title={rec.alternative_name}>{truncate(rec.alternative_name, 42)}</span>
+        </div>
+        <div className="pd-reco-meta">
+          <span>{rec.quantity} {rec.unit}</span>
+          <span>{rec.current_co2.toFixed(3)} → {rec.alternative_co2.toFixed(3)} kg CO₂</span>
+          {rec.eco_saving > 0 && <span>-€{rec.eco_saving.toFixed(3)}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RecommendationsPanel({ recommendations, loading }) {
+  if (loading) {
+    return (
+      <div className="pd-reco-state">
+        <div className="pd-reco-spinner" />
+        <p>Analyse IA en cours…</p>
+      </div>
+    );
+  }
+  if (recommendations.length === 0) {
+    return (
+      <div className="pd-reco-state">
+        <CheckCircle size={32} color="#2ecc71" strokeWidth={1.5} />
+        <p>Aucune amélioration significative détectée — votre scénario est déjà bien optimisé !</p>
+      </div>
+    );
+  }
+
+  const totalSavingCO2 = recommendations.reduce((s, r) => s + r.co2_saving, 0);
+  const totalSavingEco = recommendations.reduce((s, r) => s + r.eco_saving, 0);
+
+  return (
+    <div className="pd-reco-content">
+      <div className="pd-reco-summary">
+        <div className="pd-reco-summary-item">
+          <span className="pd-reco-summary-val">-{totalSavingCO2.toFixed(2)} kg CO₂</span>
+          <span className="pd-reco-summary-lbl">Potentiel total de réduction</span>
+        </div>
+        <div className="pd-reco-summary-item">
+          <span className="pd-reco-summary-val">{recommendations.length} suggestion{recommendations.length > 1 ? 's' : ''}</span>
+          <span className="pd-reco-summary-lbl">Améliorations identifiées</span>
+        </div>
+        {totalSavingEco > 0 && (
+          <div className="pd-reco-summary-item">
+            <span className="pd-reco-summary-val">-€{totalSavingEco.toFixed(2)}</span>
+            <span className="pd-reco-summary-lbl">Économie éco-coût possible</span>
+          </div>
+        )}
+      </div>
+      <div className="pd-reco-list">
+        {recommendations.map((r, i) => (
+          <RecoCard key={i} rec={r} rank={i + 1} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Compare scenarios components ───────────────────── */
+function BestBadge({ data }) {
+  const bestCarbon = data.reduce((b, d) => d.total_carbon_kg < b.total_carbon_kg ? d : b);
+  const bestEco    = data.reduce((b, d) => d.total_eco_cost  < b.total_eco_cost  ? d : b);
+  return (
+    <div className="pd-cmp-best">
+      <div className="pd-cmp-best-item">
+        <Leaf size={22} color="#1a9e52" strokeWidth={1.5} />
+        <div>
+          <div className="pd-cmp-best-label">Meilleure empreinte carbone</div>
+          <div className="pd-cmp-best-name">{bestCarbon.name}</div>
+          <div className="pd-cmp-best-val">{bestCarbon.total_carbon_kg.toFixed(2)} kg CO₂</div>
+        </div>
+      </div>
+      <div className="pd-cmp-best-item">
+        <TrendingDown size={22} color="#1a9e52" strokeWidth={1.5} />
+        <div>
+          <div className="pd-cmp-best-label">Meilleur éco-coût</div>
+          <div className="pd-cmp-best-name">{bestEco.name}</div>
+          <div className="pd-cmp-best-val">€{bestEco.total_eco_cost.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CompareBarChart({ data, valueKey, title, format }) {
+  const maxVal = Math.max(...data.map(d => d[valueKey]));
+  const bestId = data.reduce((b, d) => d[valueKey] < b[valueKey] ? d : b).id;
+  return (
+    <div className="pd-cmp-section">
+      <div className="pd-cmp-section-title">{title}</div>
+      {data.map(d => {
+        const pct    = maxVal > 0 ? (d[valueKey] / maxVal) * 100 : 0;
+        const isBest = d.id === bestId;
+        return (
+          <div key={d.id} className="pd-cmp-row">
+            <span className="pd-cmp-label" title={d.name}>
+              {d.name.length > 16 ? d.name.slice(0, 15) + '…' : d.name}
+            </span>
+            <div className="pd-cmp-track">
+              <div className={`pd-cmp-bar ${isBest ? 'best' : ''}`} style={{ width: `${pct}%` }} />
+            </div>
+            <span className={`pd-cmp-value ${isBest ? 'best' : ''}`}>
+              {format(d[valueKey])}
+              {isBest && <Star size={12} fill="#f1c40f" color="#f1c40f" style={{marginLeft: 4}} />}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CompareStackedChart({ data }) {
+  const maxTotal = Math.max(...data.map(d => Object.values(d.breakdown).reduce((a, b) => a + b, 0)));
+  const LABEL_W = 110, CHART_W = 200, BAR_H = 26, GAP = 14;
+  const phases  = Object.keys(PHASE_COLORS);
+
+  return (
+    <div className="pd-cmp-section">
+      <div className="pd-cmp-section-title">Répartition par phase (éco-coût €)</div>
+      <svg width="100%" viewBox={`0 0 ${LABEL_W + CHART_W} ${data.length * (BAR_H + GAP)}`}
+           style={{ display: 'block', overflow: 'visible' }}>
+        {data.map((d, i) => {
+          const y = i * (BAR_H + GAP);
+          let xOff = 0;
+          return (
+            <g key={d.id}>
+              <text x={LABEL_W - 6} y={y + BAR_H / 2 + 4}
+                    textAnchor="end" fontSize="11" fill="#636e72" fontFamily="Nunito,sans-serif">
+                {d.name.length > 14 ? d.name.slice(0, 13) + '…' : d.name}
+              </text>
+              {phases.map(phase => {
+                const val  = d.breakdown[phase] || 0;
+                if (val <= 0) return null;
+                const segW = maxTotal > 0 ? (val / maxTotal) * CHART_W : 0;
+                const rx   = xOff === 0 ? 3 : 0;
+                const rect = (
+                  <rect key={phase} x={LABEL_W + xOff} y={y} width={segW} height={BAR_H}
+                        rx={rx} fill={PHASE_COLORS[phase]} opacity={0.9} />
+                );
+                xOff += segW;
+                return rect;
+              })}
+            </g>
+          );
+        })}
+      </svg>
+      <div className="pd-cmp-legend">
+        {Object.entries(PHASE_LABELS).map(([key, label]) => (
+          <div key={key} className="pd-cmp-legend-item">
+            <div className="pd-cmp-legend-dot" style={{ background: PHASE_COLORS[key] }} />
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CompareView({ compareData }) {
+  if (!compareData || compareData.length === 0) {
+    return (
+      <div className="pd-cmp-empty">
+        <BarChart2 size={36} color="#b2bec3" strokeWidth={1.5} />
+        <p>Lancez le calcul sur vos scénarios pour les comparer ici.</p>
+      </div>
+    );
+  }
+  if (compareData.length < 2) {
+    return (
+      <div className="pd-cmp-empty">
+        <BarChart2 size={36} color="#b2bec3" strokeWidth={1.5} />
+        <p>Créez et calculez au moins <strong>2 scénarios</strong> pour afficher la comparaison.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="pd-cmp-view">
+      <BestBadge data={compareData} />
+      <CompareBarChart
+        data={compareData}
+        valueKey="total_carbon_kg"
+        title="Empreinte carbone (kg CO₂)"
+        format={v => `${v.toFixed(2)} kg`}
+      />
+      <CompareBarChart
+        data={compareData}
+        valueKey="total_eco_cost"
+        title="Éco-coût total (€)"
+        format={v => `€${v.toFixed(2)}`}
+      />
+      <CompareStackedChart data={compareData} />
+    </div>
+  );
+}
+
 /* ── Modals ─────────────────────────────────────────── */
 function ProductModal({ product, onSave, onClose }) {
   const [name,         setName]         = useState(product?.name || '');
@@ -139,7 +375,7 @@ function ProductModal({ product, onSave, onClose }) {
       <div className="pd-modal" onClick={e => e.stopPropagation()}>
         <div className="pd-modal-header">
           <h3>{isEdit ? 'Modifier le produit' : 'Nouveau produit'}</h3>
-          <button className="pd-modal-close" onClick={onClose}>✕</button>
+          <button className="pd-modal-close" onClick={onClose}><X size={16} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="pd-modal-field">
@@ -194,7 +430,7 @@ function ScenarioModal({ onSave, onClose }) {
       <div className="pd-modal pd-modal-sm" onClick={e => e.stopPropagation()}>
         <div className="pd-modal-header">
           <h3>Nouveau scénario</h3>
-          <button className="pd-modal-close" onClick={onClose}>✕</button>
+          <button className="pd-modal-close" onClick={onClose}><X size={16} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="pd-modal-field">
@@ -220,7 +456,7 @@ function DeleteModal({ label, onConfirm, onClose }) {
       <div className="pd-modal pd-modal-sm" onClick={e => e.stopPropagation()}>
         <div className="pd-modal-header">
           <h3>Confirmer la suppression</h3>
-          <button className="pd-modal-close" onClick={onClose}>✕</button>
+          <button className="pd-modal-close" onClick={onClose}><X size={16} /></button>
         </div>
         <p className="pd-modal-confirm-text">
           Êtes-vous sûr de vouloir supprimer <strong>«{label}»</strong> ?<br />
@@ -267,7 +503,7 @@ function MaterialRow({ item, onUpdate, onRemove }) {
         <label>Unité</label>
         <input value={item.unit} readOnly placeholder="—" />
       </div>
-      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>🗑</button>
+      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}><Trash2 size={14} /></button>
     </div>
   );
 }
@@ -304,7 +540,7 @@ function TransportRow({ item, onUpdate, onRemove }) {
         <label>Unité</label>
         <input value={item.unit} readOnly placeholder="—" />
       </div>
-      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>🗑</button>
+      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}><Trash2 size={14} /></button>
     </div>
   );
 }
@@ -337,7 +573,7 @@ function EnergyRow({ item, onUpdate, onRemove }) {
         <label>Unité</label>
         <input value={item.unit} readOnly placeholder="—" />
       </div>
-      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>🗑</button>
+      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}><Trash2 size={14} /></button>
     </div>
   );
 }
@@ -362,7 +598,7 @@ function PackagingRow({ item, onUpdate, onRemove }) {
         <label>Unité</label>
         <input value={item.unit} readOnly placeholder="—" />
       </div>
-      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>🗑</button>
+      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}><Trash2 size={14} /></button>
     </div>
   );
 }
@@ -412,7 +648,10 @@ export default function ProductDescription() {
   const [scenarios,      setScenarios]      = useState([]);
   const [activeScenario, setActiveScenario] = useState(null);
   const [impactResult,   setImpactResult]   = useState(null);
-  const [resultTab,      setResultTab]      = useState(0);
+  const [compareData,      setCompareData]      = useState([]);
+  const [recommendations,  setRecommendations]  = useState([]);
+  const [recoLoading,      setRecoLoading]       = useState(false);
+  const [resultTab,        setResultTab]         = useState(0);
   const [saving,         setSaving]         = useState(false);
   const [saveMsg,        setSaveMsg]        = useState('');
   const [form,           setForm]           = useState(emptyForm());
@@ -446,13 +685,35 @@ export default function ProductDescription() {
     });
   }, [activeProduct]);
 
-  /* ── Load form entries when scenario changes ── */
+  /* ── Load compare data when tab 1 is active ── */
+  useEffect(() => {
+    if (resultTab !== 1 || !activeProduct) return;
+    api.get(`/api/products/${activeProduct.id}/compare/`).then(data => {
+      if (Array.isArray(data)) setCompareData(data);
+    });
+  }, [resultTab, activeProduct, impactResult]);
+
+  /* ── Reset recommendations when scenario changes ── */
+  useEffect(() => { setRecommendations([]); }, [activeScenario]);
+
+  const handleLoadReco = () => {
+    if (!activeScenario) return;
+    setRecoLoading(true);
+    api.get(`/api/scenarios/${activeScenario.id}/recommendations/`).then(data => {
+      setRecommendations(Array.isArray(data) ? data : []);
+      setRecoLoading(false);
+    });
+  };
+
+  /* ── Load form entries + stored result when scenario changes ── */
   useEffect(() => {
     if (!activeScenario) { setForm(emptyForm()); setImpactResult(null); return; }
     api.get(`/api/scenarios/${activeScenario.id}/`).then(entries => {
       if (!entries.error) setForm(dbEntriesToForm(entries));
     });
-    setImpactResult(null);
+    api.get(`/api/scenarios/${activeScenario.id}/result/`).then(result => {
+      setImpactResult(result.error ? null : result);
+    });
   }, [activeScenario]);
 
   /* ── Form helpers ── */
@@ -533,7 +794,7 @@ export default function ProductDescription() {
               {p.name}
               <span className="pd-tab-actions">
                 <span className="pd-tab-edit"   onClick={e => { e.stopPropagation(); setEditProduct(p); }}>✏</span>
-                <span className="pd-tab-delete" onClick={e => { e.stopPropagation(); setDeleteProduct(p); }}>✕</span>
+                <span className="pd-tab-delete" onClick={e => { e.stopPropagation(); setDeleteProduct(p); }}><X size={11} /></span>
               </span>
             </button>
           ))}
@@ -563,7 +824,7 @@ export default function ProductDescription() {
               </div>
               <div className="pd-product-actions">
                 <button className="pd-btn-icon" onClick={() => setEditProduct(activeProduct)}>✏ Modifier</button>
-                <button className="pd-btn-icon pd-btn-icon-danger" onClick={() => setDeleteProduct(activeProduct)}>🗑 Supprimer</button>
+                <button className="pd-btn-icon pd-btn-icon-danger" onClick={() => setDeleteProduct(activeProduct)}><Trash2 size={13} /> Supprimer</button>
                 <button className="pd-guide-btn">Guide d'utilisation ACV</button>
               </div>
             </div>
@@ -657,44 +918,77 @@ export default function ProductDescription() {
                 ))}
               </div>
 
-              <div className="pd-chart-header">
-                <span className="pd-chart-title">Impact par phase</span>
-              </div>
+              {resultTab === 0 && (
+                <>
+                  <div className="pd-chart-header">
+                    <span className="pd-chart-title">Impact par phase</span>
+                  </div>
 
-              <DonutChart result={impactResult} />
+                  <DonutChart result={impactResult} />
 
-              {impactResult?.breakdown && (
-                <div className="pd-legend">
-                  {Object.entries(impactResult.breakdown)
-                    .filter(([_, v]) => v > 0)
-                    .map(([key, value]) => {
-                      const total = impactResult.total_eco_cost;
-                      const pct   = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                      return (
-                        <div key={key} className="pd-legend-item">
-                          <div className="pd-legend-dot" style={{ background: PHASE_COLORS[key] }} />
-                          <span className="pd-legend-label">{PHASE_LABELS[key]}</span>
-                          <span className="pd-legend-value">€{value.toFixed(2)} ({pct}%)</span>
-                        </div>
-                      );
-                    })}
-                </div>
+                  {impactResult?.breakdown && (
+                    <div className="pd-legend">
+                      {Object.entries(impactResult.breakdown)
+                        .filter(([_, v]) => v > 0)
+                        .map(([key, value]) => {
+                          const total = impactResult.total_eco_cost;
+                          const pct   = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                          return (
+                            <div key={key} className="pd-legend-item">
+                              <div className="pd-legend-dot" style={{ background: PHASE_COLORS[key] }} />
+                              <span className="pd-legend-label">{PHASE_LABELS[key]}</span>
+                              <span className="pd-legend-value">€{value.toFixed(2)} ({pct}%)</span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {impactResult && (
+                    <div className="pd-impact-summary">
+                      <div className="pd-impact-item">
+                        <span className="pd-impact-label">Éco-coût total</span>
+                        <span className="pd-impact-value green">€{impactResult.total_eco_cost.toFixed(2)}</span>
+                      </div>
+                      <div className="pd-impact-item">
+                        <span className="pd-impact-label">Empreinte carbone</span>
+                        <span className="pd-impact-value blue">{impactResult.total_carbon_kg.toFixed(2)} kg CO₂</span>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
-              {impactResult && (
-                <div className="pd-impact-summary">
-                  <div className="pd-impact-item">
-                    <span className="pd-impact-label">Éco-coût total</span>
-                    <span className="pd-impact-value green">€{impactResult.total_eco_cost.toFixed(2)}</span>
-                  </div>
-                  <div className="pd-impact-item">
-                    <span className="pd-impact-label">Empreinte carbone</span>
-                    <span className="pd-impact-value blue">{impactResult.total_carbon_kg.toFixed(2)} kg CO₂</span>
-                  </div>
-                </div>
-              )}
+              {resultTab === 1 && <CompareView compareData={compareData} />}
             </div>
             {/* END results card */}
+
+            {/* ══ Recommendations panel ══ */}
+            {impactResult && (
+              <div className="pd-reco-card">
+                <div className="pd-reco-header">
+                  <div>
+                    <h3 className="pd-reco-title">Recommandations IA</h3>
+                    <p className="pd-reco-subtitle">
+                      Analyse KNN sur <strong>{activeScenario?.name}</strong> — suggestions d'optimisation par phase
+                    </p>
+                  </div>
+                  {recoLoading
+                    ? <div className="pd-reco-spinner-inline" />
+                    : <button className="pd-reco-btn" onClick={handleLoadReco}>
+                        {recommendations.length > 0
+                          ? <><RefreshCw size={13} /> Réanalyser</>
+                          : <><Search size={13} /> Voir les recommandations</>
+                        }
+                      </button>
+                  }
+                </div>
+                {(recoLoading || recommendations.length > 0) && (
+                  <RecommendationsPanel recommendations={recommendations} loading={recoLoading} />
+                )}
+              </div>
+            )}
+            {/* END recommendations panel */}
 
             {/* Scenario panel */}
             <div className="pd-scenario-panel">
@@ -711,7 +1005,7 @@ export default function ProductDescription() {
                     className={`pd-scenario-item ${activeScenario?.id === s.id ? 'active' : ''}`}
                     onClick={() => setActiveScenario(s)}>
                     <div className="pd-scenario-item-left">
-                      <span className="pd-scenario-icon">🗂</span>
+                      <span className="pd-scenario-icon"><Folder size={16} color="#636e72" /></span>
                       <div>
                         <span className="pd-scenario-name">{s.name}</span>
                         {s.is_default && <span className="pd-scenario-badge">Par défaut</span>}
@@ -720,7 +1014,7 @@ export default function ProductDescription() {
                     {!s.is_default && (
                       <button className="pd-scenario-delete"
                         onClick={e => { e.stopPropagation(); setDeleteScenario(s); }}
-                        title="Supprimer ce scénario">✕</button>
+                        title="Supprimer ce scénario"><X size={13} /></button>
                     )}
                   </div>
                 ))}
