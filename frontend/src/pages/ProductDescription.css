@@ -551,6 +551,10 @@
   backdrop-filter: blur(2px);
 }
 
+.pd-modal-overlay-top {
+  z-index: 600;
+}
+
 .pd-modal {
   background: #ffffff;
   border-radius: 16px;
@@ -559,6 +563,10 @@
   max-width: 460px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
   animation: modalIn 0.2s ease;
+}
+
+.pd-modal-top {
+  z-index: 610;
 }
 
 .pd-modal-sm { max-width: 380px; }
@@ -799,6 +807,50 @@
   color: #636e72;
   margin-bottom: 16px;
   line-height: 1.5;
+}
+
+.pd-scenario-add-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.pd-scenario-add-row input {
+  flex: 1;
+  border: 1px solid #dfe6e9;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #2d3436;
+  background: #f8fafb;
+}
+
+.pd-scenario-error {
+  margin-top: 8px;
+  color: #e74c3c;
+  font-size: 12px;
+}
+
+.pd-scenario-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pd-scenario-action {
+  border: 1px solid #dfe6e9;
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: #2d3436;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pd-scenario-action:hover {
+  border-color: #74b9ff;
+  background: #f0f9ff;
 }
 
 .pd-scenario-list {

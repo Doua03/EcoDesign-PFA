@@ -500,10 +500,28 @@ def scenario_detail(request, scenario_id):
     if request.method == 'GET':
         return JsonResponse(scenario_entries_to_dict(scenario))
  
-    # DELETE → delete scenario + all linked entries (cascade)
+    # PUT → update scenario name
+    if request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+            name = data.get('name', '').strip()
+            if not name:
+                return JsonResponse({'error': 'Scenario name is required'}, status=400)
+
+            scenario.name = name
+            scenario.save()
+
+            product = getattr(scenario, 'product', None)
+            if not product:
+                product = Product.objects.filter(default_scenario=scenario).first()
+
+            return JsonResponse(scenario_to_dict(scenario, product))
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # DELETE → delete scenario unless it is the product's default scenario
     if request.method == 'DELETE':
-        # Check it's not the product's default scenario being deleted
-        # (caller should prevent this in UI, but guard here too)
         product = Product.objects.filter(default_scenario=scenario, user=user).first()
         if product:
             return JsonResponse(

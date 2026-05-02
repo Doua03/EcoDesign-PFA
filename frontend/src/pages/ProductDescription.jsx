@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import "./ProductDescription.css";
 import {
   Leaf, Truck, Zap, Factory, Recycle, Layers,
   Trash2, BarChart2, Search, RefreshCw, CheckCircle,
-  TrendingDown, DollarSign, X, Star, Folder,
+  TrendingDown, X, Star, Folder,
 } from "lucide-react";
 
 /* ── API helpers ────────────────────────────────────── */
@@ -412,16 +413,22 @@ function ProductModal({ product, onSave, onClose }) {
   );
 }
 
-function ScenarioModal({ onSave, onClose }) {
-  const [name,    setName]    = useState('');
+function ScenarioModal({ scenario, onSave, onClose }) {
+  const [name,    setName]    = useState(scenario?.name || '');
   const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
+  const isEdit = !!scenario;
+
+  useEffect(() => {
+    setName(scenario?.name || '');
+    setError('');
+  }, [scenario]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) { setError('Le nom du scénario est requis'); return; }
     setLoading(true); setError('');
-    onSave(name.trim());
+    await onSave(name.trim(), scenario);
     setLoading(false);
   };
 
@@ -429,7 +436,7 @@ function ScenarioModal({ onSave, onClose }) {
     <div className="pd-modal-overlay" onClick={onClose}>
       <div className="pd-modal pd-modal-sm" onClick={e => e.stopPropagation()}>
         <div className="pd-modal-header">
-          <h3>Nouveau scénario</h3>
+          <h3>{isEdit ? 'Renommer le scénario' : 'Nouveau scénario'}</h3>
           <button className="pd-modal-close" onClick={onClose}><X size={16} /></button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -441,7 +448,7 @@ function ScenarioModal({ onSave, onClose }) {
           {error && <p className="pd-modal-error">{error}</p>}
           <div className="pd-modal-actions">
             <button type="button" className="pd-btn-cancel" onClick={onClose}>Annuler</button>
-            <button type="submit" className="pd-btn-save" disabled={loading}>{loading ? '...' : 'Créer'}</button>
+            <button type="submit" className="pd-btn-save" disabled={loading}>{loading ? '...' : (isEdit ? 'Modifier' : 'Créer')}</button>
           </div>
         </form>
       </div>
@@ -452,8 +459,8 @@ function ScenarioModal({ onSave, onClose }) {
 function DeleteModal({ label, onConfirm, onClose }) {
   const [loading, setLoading] = useState(false);
   return (
-    <div className="pd-modal-overlay" onClick={onClose}>
-      <div className="pd-modal pd-modal-sm" onClick={e => e.stopPropagation()}>
+    <div className="pd-modal-overlay pd-modal-overlay-top" onClick={onClose}>
+      <div className="pd-modal pd-modal-sm pd-modal-top" onClick={e => e.stopPropagation()}>
         <div className="pd-modal-header">
           <h3>Confirmer la suppression</h3>
           <button className="pd-modal-close" onClick={onClose}><X size={16} /></button>
@@ -643,6 +650,7 @@ function dbEntriesToForm(entries) {
 
 /* ── Main component ─────────────────────────────────── */
 export default function ProductDescription() {
+  const location = useLocation();
   const [products,       setProducts]       = useState([]);
   const [activeProduct,  setActiveProduct]  = useState(null);
   const [scenarios,      setScenarios]      = useState([]);
@@ -660,6 +668,9 @@ export default function ProductDescription() {
   const [editProduct,        setEditProduct]         = useState(null);
   const [deleteProduct,      setDeleteProduct]       = useState(null);
   const [showCreateScenario, setShowCreateScenario]  = useState(false);
+  const [editingScenario,    setEditingScenario]     = useState(null);
+  const [scenarioNameInput,  setScenarioNameInput]   = useState('');
+  const [scenarioAddError,   setScenarioAddError]    = useState('');
   const [deleteScenario,     setDeleteScenario]      = useState(null);
 
   /* ── Load products ── */
@@ -667,9 +678,19 @@ export default function ProductDescription() {
     const data = await api.get('/api/products/');
     if (!data.error) {
       setProducts(data);
+      // Check if we have a selected product from navigation state
+      const selectedProductId = location.state?.selectedProductId;
+      if (selectedProductId !== undefined && selectedProductId !== null) {
+        const selectedProduct = data.find(p => String(p.id) === String(selectedProductId));
+        if (selectedProduct) {
+          setActiveProduct(selectedProduct);
+          return;
+        }
+      }
+      // Default behavior: select first product
       if (data.length > 0) setActiveProduct(prev => prev || data[0]);
     }
-  }, []);
+  }, [location.state]);
 
   useEffect(() => { loadProducts(); }, [loadProducts]);
 
@@ -769,10 +790,60 @@ export default function ProductDescription() {
 
   /* ── Scenario CRUD ── */
   const handleCreateScenario = async (name) => {
+    if (!name || !name.trim()) {
+      setScenarioAddError('Le nom du scénario est requis.');
+      return;
+    }
+    setScenarioAddError('');
     const s = await api.post(`/api/products/${activeProduct.id}/scenarios/`, { name });
-    if (!s.error) { setScenarios(prev => [...prev, s]); setActiveScenario(s); }
-    setShowCreateScenario(false);
+    if (!s.error) {
+      setScenarios(prev => [...prev, s]);
+      setActiveScenario(s);
+      setScenarioNameInput('');
+    }
+    if (showCreateScenario) {
+      setShowCreateScenario(false);
+    }
   };
+
+  const handleOpenEditScenario = (scenario) => {
+    setEditingScenario(scenario);
+    setShowCreateScenario(true);
+  };
+
+  const closeScenarioModal = () => {
+    setShowCreateScenario(false);
+    setEditingScenario(null);
+  };
+
+  const handleSaveScenario = async (name, scenario) => {
+    if (scenario) {
+      const result = await api.put(`/api/scenarios/${scenario.id}/`, { name });
+      if (!result.error) {
+        setScenarios(prev => prev.map(s => s.id === scenario.id ? result : s));
+        setActiveScenario(prev => prev?.id === scenario.id ? { ...prev, name: result.name } : prev);
+        setEditingScenario(null);
+        setShowCreateScenario(false);
+      }
+      return;
+    }
+
+    await handleCreateScenario(name);
+  };
+
+  const handleSetDefaultScenario = async (scenario) => {
+    if (!activeProduct) return;
+    const result = await api.put(`/api/products/${activeProduct.id}/`, {
+      default_scenario: scenario.id,
+    });
+    if (!result.error) {
+      setProducts(prev => prev.map(p => p.id === activeProduct.id ? result : p));
+      setActiveProduct(prev => prev && prev.id === activeProduct.id ? { ...prev, ...result } : prev);
+      setScenarios(prev => prev.map(s => ({ ...s, is_default: s.id === scenario.id })));
+      setActiveScenario(scenario);
+    }
+  };
+
   const handleDeleteScenario = async () => {
     await api.delete(`/api/scenarios/${deleteScenario.id}/`);
     const rest = scenarios.filter(s => s.id !== deleteScenario.id);
@@ -994,11 +1065,27 @@ export default function ProductDescription() {
             <div className="pd-scenario-panel">
               <div className="pd-scenario-panel-header">
                 <h3>Scénarios</h3>
-                <button className="pd-add-btn" onClick={() => setShowCreateScenario(true)}>+ Nouveau scénario</button>
+                <button className="pd-add-btn" onClick={() => { setEditingScenario(null); setShowCreateScenario(true); }}>
+                  + Nouveau scénario
+                </button>
               </div>
               <p className="pd-scenario-panel-desc">
                 Chaque scénario représente une configuration ACV différente pour <strong>{activeProduct.name}</strong>.
               </p>
+              <div className="pd-scenario-add-row">
+                <input
+                  type="text"
+                  value={scenarioNameInput}
+                  onChange={e => { setScenarioNameInput(e.target.value); setScenarioAddError(''); }}
+                  placeholder="Ajouter un scénario"
+                />
+                <button
+                  type="button"
+                  className="pd-btn-save"
+                  onClick={() => handleCreateScenario(scenarioNameInput.trim())}
+                >Ajouter</button>
+              </div>
+              {scenarioAddError && <p className="pd-scenario-error">{scenarioAddError}</p>}
               <div className="pd-scenario-list">
                 {scenarios.map(s => (
                   <div key={s.id}
@@ -1011,11 +1098,21 @@ export default function ProductDescription() {
                         {s.is_default && <span className="pd-scenario-badge">Par défaut</span>}
                       </div>
                     </div>
-                    {!s.is_default && (
-                      <button className="pd-scenario-delete"
-                        onClick={e => { e.stopPropagation(); setDeleteScenario(s); }}
-                        title="Supprimer ce scénario"><X size={13} /></button>
-                    )}
+                    <div className="pd-scenario-item-actions">
+                      {!s.is_default && (
+                        <button className="pd-scenario-action" onClick={e => { e.stopPropagation(); handleSetDefaultScenario(s); }}>
+                          Définir par défaut
+                        </button>
+                      )}
+                      <button className="pd-scenario-action" onClick={e => { e.stopPropagation(); handleOpenEditScenario(s); }}>
+                        Modifier
+                      </button>
+                      {!s.is_default && (
+                        <button className="pd-scenario-delete" onClick={e => { e.stopPropagation(); setDeleteScenario(s); }} title="Supprimer ce scénario">
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
                 {scenarios.length === 0 && (
@@ -1038,7 +1135,13 @@ export default function ProductDescription() {
       {showCreateProduct  && <ProductModal onSave={handleCreateProduct} onClose={() => setShowCreateProduct(false)} />}
       {editProduct        && <ProductModal product={editProduct} onSave={handleEditProduct} onClose={() => setEditProduct(null)} />}
       {deleteProduct      && <DeleteModal label={deleteProduct.name} onConfirm={handleDeleteProduct} onClose={() => setDeleteProduct(null)} />}
-      {showCreateScenario && <ScenarioModal onSave={handleCreateScenario} onClose={() => setShowCreateScenario(false)} />}
+      {(showCreateScenario || editingScenario) && (
+        <ScenarioModal
+          scenario={editingScenario}
+          onSave={handleSaveScenario}
+          onClose={closeScenarioModal}
+        />
+      )}
       {deleteScenario     && <DeleteModal label={deleteScenario.name} onConfirm={handleDeleteScenario} onClose={() => setDeleteScenario(null)} />}
 
     </div>
