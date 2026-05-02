@@ -1,21 +1,36 @@
 import { useState } from "react";
-import { BarChart2, LayoutDashboard, Heart, Clock, Tag, Settings, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  BarChart2,
+  LayoutDashboard,
+  Heart,
+  Clock,
+  Tag,
+  Settings,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+} from "lucide-react";
 import "./Sidebar.css";
 
 const navItems = [
-  { Icon: BarChart2,       label: "Calcul ACV",       active: true },
+  { Icon: Package, label: "Produits", path: "/products" },
+  { Icon: BarChart2, label: "Calcul ACV", path: "/app" },
   { Icon: LayoutDashboard, label: "Tableau de bords" },
-  { Icon: Heart,           label: "Favorites" },
-  { Icon: Clock,           label: "Historique" },
-  { Icon: Tag,             label: "Tarification" },
+  { Icon: Heart, label: "Favorites" },
+  { Icon: Clock, label: "Historique" },
+  { Icon: Tag, label: "Tarification" },
 ];
 
 const bottomItems = [
   { Icon: Settings, label: "Settings" },
-  { Icon: LogOut,   label: "Logout", danger: true },
+  { Icon: LogOut, label: "Logout", danger: true },
 ];
 
 export default function Sidebar({ onToggle }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
 
   const toggle = () => {
@@ -24,9 +39,12 @@ export default function Sidebar({ onToggle }) {
     if (onToggle) onToggle(next ? 200 : 60);
   };
 
+  const handleNavClick = (path) => {
+    if (path) navigate(path);
+  };
+
   return (
     <aside className={`sidebar ${open ? "open" : ""}`}>
-
       {/* Toggle button */}
       <button className="sidebar-toggle" onClick={toggle}>
         {open ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
@@ -36,9 +54,15 @@ export default function Sidebar({ onToggle }) {
 
       {/* Main nav */}
       <nav className="sidebar-nav">
-        {navItems.map(({ Icon, label, active }, i) => (
-          <button key={i} className={`sidebar-item ${active ? "active" : ""}`}>
-            <span className="sidebar-item-icon"><Icon size={18} /></span>
+        {navItems.map(({ Icon, label, path }, i) => (
+          <button
+            key={i}
+            className={`sidebar-item ${location.pathname === path ? "active" : ""}`}
+            onClick={() => handleNavClick(path)}
+          >
+            <span className="sidebar-item-icon">
+              <Icon size={18} />
+            </span>
             <span className="sidebar-item-label">{label}</span>
           </button>
         ))}
@@ -49,12 +73,13 @@ export default function Sidebar({ onToggle }) {
       <div className="sidebar-bottom">
         {bottomItems.map(({ Icon, label, danger }, i) => (
           <button key={i} className={`sidebar-item ${danger ? "danger" : ""}`}>
-            <span className="sidebar-item-icon"><Icon size={18} /></span>
+            <span className="sidebar-item-icon">
+              <Icon size={18} />
+            </span>
             <span className="sidebar-item-label">{label}</span>
           </button>
         ))}
       </div>
-
     </aside>
   );
 }
