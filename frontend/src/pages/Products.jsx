@@ -1,17 +1,38 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight,
-  Package, Settings
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+  Settings,
 } from "lucide-react";
 import "./Products.css";
 
 /* ── API helpers ────────────────────────────────────── */
 const api = {
-  get:    url      => fetch(url, { credentials: 'include' }).then(r => r.json()),
-  post:   (url, b) => fetch(url, { method: 'POST',   credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json()),
-  put:    (url, b) => fetch(url, { method: 'PUT',    credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json()),
-  delete: url      => fetch(url, { method: 'DELETE', credentials: 'include' }).then(r => r.json()),
+  get: (url) => fetch(url, { credentials: "include" }).then((r) => r.json()),
+  post: (url, b) =>
+    fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(b),
+    }).then((r) => r.json()),
+  put: (url, b) =>
+    fetch(url, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(b),
+    }).then((r) => r.json()),
+  delete: (url) =>
+    fetch(url, { method: "DELETE", credentials: "include" }).then((r) =>
+      r.json(),
+    ),
 };
 
 export default function Products() {
@@ -24,7 +45,11 @@ export default function Products() {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteProduct, setDeleteProduct] = useState(null);
-  const [newProduct, setNewProduct] = useState({ name: "", description: "", scenario_name: "" });
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    description: "",
+    scenario_name: "",
+  });
 
   // Scenario management state
   const [manageScenariosProduct, setManageScenariosProduct] = useState(null);
@@ -37,36 +62,48 @@ export default function Products() {
   const loadProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.get('/api/products/');
+      const data = await api.get("/api/products/");
       if (!data.error) {
         setProducts(data);
         setFilteredProducts(data);
       }
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error("Error loading products:", error);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadProducts(); }, [loadProducts]);
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   /* ── Filter products ── */
   useEffect(() => {
-    const filtered = products.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase()),
     );
     setFilteredProducts(filtered);
     setCurrentPage(1); // Reset to first page when filtering
   }, [searchTerm, products]);
 
   /* ── Pagination ── */
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / itemsPerPage),
+  );
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
   const visibleStart = filteredProducts.length === 0 ? 0 : startIndex + 1;
-  const visibleEnd = Math.min(filteredProducts.length, startIndex + itemsPerPage);
+  const visibleEnd = Math.min(
+    filteredProducts.length,
+    startIndex + itemsPerPage,
+  );
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -79,14 +116,14 @@ export default function Products() {
     if (!newProduct.name.trim() || !newProduct.scenario_name.trim()) return;
 
     try {
-      const result = await api.post('/api/products/', newProduct);
+      const result = await api.post("/api/products/", newProduct);
       if (!result.error) {
-        setProducts(prev => [result, ...prev]);
+        setProducts((prev) => [result, ...prev]);
         setShowCreateModal(false);
         setNewProduct({ name: "", description: "", scenario_name: "" });
       }
     } catch (error) {
-      console.error('Error creating product:', error);
+      console.error("Error creating product:", error);
     }
   };
 
@@ -96,10 +133,10 @@ export default function Products() {
 
     try {
       await api.delete(`/api/products/${deleteProduct.id}/`);
-      setProducts(prev => prev.filter(p => p.id !== deleteProduct.id));
+      setProducts((prev) => prev.filter((p) => p.id !== deleteProduct.id));
       setDeleteProduct(null);
     } catch (error) {
-      console.error('Error deleting product:', error);
+      console.error("Error deleting product:", error);
     }
   };
 
@@ -107,14 +144,14 @@ export default function Products() {
   const handleManageScenarios = async (product) => {
     setManageScenariosProduct(product);
     setEditingScenario(null);
-    setScenarioForm({ name: '' });
+    setScenarioForm({ name: "" });
     try {
       const data = await api.get(`/api/products/${product.id}/scenarios/`);
       if (!data.error) {
         setScenarios(data);
       }
     } catch (error) {
-      console.error('Error loading scenarios:', error);
+      console.error("Error loading scenarios:", error);
     }
   };
 
@@ -122,15 +159,18 @@ export default function Products() {
     if (!scenarioForm.name.trim() || !manageScenariosProduct) return;
 
     try {
-      const result = await api.post(`/api/products/${manageScenariosProduct.id}/scenarios/`, {
-        name: scenarioForm.name
-      });
+      const result = await api.post(
+        `/api/products/${manageScenariosProduct.id}/scenarios/`,
+        {
+          name: scenarioForm.name,
+        },
+      );
       if (!result.error) {
-        setScenarios(prev => [...prev, result]);
+        setScenarios((prev) => [...prev, result]);
         setScenarioForm({ name: "" });
       }
     } catch (error) {
-      console.error('Error creating scenario:', error);
+      console.error("Error creating scenario:", error);
     }
   };
 
@@ -144,15 +184,17 @@ export default function Products() {
 
     try {
       const result = await api.put(`/api/scenarios/${editingScenario.id}/`, {
-        name: scenarioForm.name
+        name: scenarioForm.name,
       });
       if (!result.error) {
-        setScenarios(prev => prev.map(s => s.id === editingScenario.id ? result : s));
+        setScenarios((prev) =>
+          prev.map((s) => (s.id === editingScenario.id ? result : s)),
+        );
         setEditingScenario(null);
         setScenarioForm({ name: "" });
       }
     } catch (error) {
-      console.error('Error updating scenario:', error);
+      console.error("Error updating scenario:", error);
     }
   };
 
@@ -160,23 +202,28 @@ export default function Products() {
     if (!manageScenariosProduct) return;
 
     try {
-      const result = await api.put(`/api/products/${manageScenariosProduct.id}/`, {
-        default_scenario: scenario.id
-      });
+      const result = await api.put(
+        `/api/products/${manageScenariosProduct.id}/`,
+        {
+          default_scenario: scenario.id,
+        },
+      );
       if (!result.error) {
         // Update the product in the products list
-        setProducts(prev => prev.map(p =>
-          p.id === manageScenariosProduct.id ? result : p
-        ));
+        setProducts((prev) =>
+          prev.map((p) => (p.id === manageScenariosProduct.id ? result : p)),
+        );
         // Update the scenarios list to reflect the new default
-        setScenarios(prev => prev.map(s => ({
-          ...s,
-          is_default: s.id === scenario.id
-        })));
+        setScenarios((prev) =>
+          prev.map((s) => ({
+            ...s,
+            is_default: s.id === scenario.id,
+          })),
+        );
         setManageScenariosProduct(result);
       }
     } catch (error) {
-      console.error('Error setting default scenario:', error);
+      console.error("Error setting default scenario:", error);
     }
   };
 
@@ -189,10 +236,12 @@ export default function Products() {
 
     try {
       await api.delete(`/api/scenarios/${deleteScenarioConfirm.id}/`);
-      setScenarios(prev => prev.filter(s => s.id !== deleteScenarioConfirm.id));
+      setScenarios((prev) =>
+        prev.filter((s) => s.id !== deleteScenarioConfirm.id),
+      );
       setDeleteScenarioConfirm(null);
     } catch (error) {
-      console.error('Error deleting scenario:', error);
+      console.error("Error deleting scenario:", error);
     }
   };
 
@@ -201,7 +250,7 @@ export default function Products() {
     // Navigate to ProductDescription page with product context
     // Since ProductDescription manages its own state, we'll need to modify it later
     // For now, we'll navigate to /app and the component will handle selection
-    navigate('/app', { state: { selectedProductId: product.id } });
+    navigate("/app", { state: { selectedProductId: product.id } });
   };
 
   if (loading) {
@@ -240,7 +289,8 @@ export default function Products() {
           />
         </div>
         <div className="products-count">
-          {filteredProducts.length} produit{filteredProducts.length !== 1 ? 's' : ''}
+          {filteredProducts.length} produit
+          {filteredProducts.length !== 1 ? "s" : ""}
           {searchTerm && ` (filtré sur "${searchTerm}")`}
         </div>
       </div>
@@ -259,11 +309,13 @@ export default function Products() {
             {paginatedProducts.length === 0 ? (
               <tr>
                 <td colSpan="4" className="products-empty">
-                  {searchTerm ? 'Aucun produit trouvé pour cette recherche.' : 'Aucun produit créé.'}
+                  {searchTerm
+                    ? "Aucun produit trouvé pour cette recherche."
+                    : "Aucun produit créé."}
                 </td>
               </tr>
             ) : (
-              paginatedProducts.map(product => (
+              paginatedProducts.map((product) => (
                 <tr key={product.id}>
                   <td className="products-name">
                     <div className="product-name-cell">
@@ -272,7 +324,11 @@ export default function Products() {
                     </div>
                   </td>
                   <td className="products-description">
-                    {product.description || <em className="products-no-description">Aucune description</em>}
+                    {product.description || (
+                      <em className="products-no-description">
+                        Aucune description
+                      </em>
+                    )}
                   </td>
                   <td className="products-scenario">
                     {product.default_scenario_name ? (
@@ -317,13 +373,15 @@ export default function Products() {
       {totalPages > 1 && (
         <div className="products-pagination">
           <div className="products-pagination-summary">
-            Affichage {visibleStart} - {visibleEnd} sur {filteredProducts.length} produit{filteredProducts.length !== 1 ? 's' : ''}
+            Affichage {visibleStart} - {visibleEnd} sur{" "}
+            {filteredProducts.length} produit
+            {filteredProducts.length !== 1 ? "s" : ""}
           </div>
 
           <div className="products-pagination-controls">
             <button
               className="products-page-btn"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               <ChevronLeft size={16} />
@@ -332,7 +390,7 @@ export default function Products() {
             {Array.from({ length: totalPages }, (_, index) => (
               <button
                 key={index}
-                className={`products-page-number ${currentPage === index + 1 ? 'active' : ''}`}
+                className={`products-page-number ${currentPage === index + 1 ? "active" : ""}`}
                 onClick={() => setCurrentPage(index + 1)}
               >
                 {index + 1}
@@ -341,7 +399,9 @@ export default function Products() {
 
             <button
               className="products-page-btn"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
               disabled={currentPage === totalPages}
             >
               <ChevronRight size={16} />
@@ -353,10 +413,15 @@ export default function Products() {
             <select
               id="items-per-page"
               value={itemsPerPage}
-              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
             >
-              {[5, 10, 20, 50].map(size => (
-                <option key={size} value={size}>{size}</option>
+              {[5, 10, 20, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
               ))}
             </select>
             <span>par page</span>
@@ -366,8 +431,11 @@ export default function Products() {
 
       {/* Create Product Modal */}
       {showCreateModal && (
-        <div className="products-modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="products-modal" onClick={e => e.stopPropagation()}>
+        <div
+          className="products-modal-overlay"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div className="products-modal" onClick={(e) => e.stopPropagation()}>
             <div className="products-modal-header">
               <h2>Créer un nouveau produit</h2>
               <button
@@ -384,7 +452,9 @@ export default function Products() {
                   id="product-name"
                   type="text"
                   value={newProduct.name}
-                  onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setNewProduct((prev) => ({ ...prev, name: e.target.value }))
+                  }
                   placeholder="Entrez le nom du produit"
                 />
               </div>
@@ -393,18 +463,30 @@ export default function Products() {
                 <textarea
                   id="product-description"
                   value={newProduct.description}
-                  onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) =>
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
                   placeholder="Entrez une description (optionnel)"
                   rows={3}
                 />
               </div>
               <div className="products-form-group">
-                <label htmlFor="scenario-name">Nom du scénario par défaut *</label>
+                <label htmlFor="scenario-name">
+                  Nom du scénario par défaut *
+                </label>
                 <input
                   id="scenario-name"
                   type="text"
                   value={newProduct.scenario_name}
-                  onChange={(e) => setNewProduct(prev => ({ ...prev, scenario_name: e.target.value }))}
+                  onChange={(e) =>
+                    setNewProduct((prev) => ({
+                      ...prev,
+                      scenario_name: e.target.value,
+                    }))
+                  }
                   placeholder="Entrez le nom du scénario initial"
                 />
               </div>
@@ -419,7 +501,9 @@ export default function Products() {
               <button
                 className="products-modal-btn create"
                 onClick={handleCreateProduct}
-                disabled={!newProduct.name.trim() || !newProduct.scenario_name.trim()}
+                disabled={
+                  !newProduct.name.trim() || !newProduct.scenario_name.trim()
+                }
               >
                 Créer le produit
               </button>
@@ -430,8 +514,11 @@ export default function Products() {
 
       {/* Delete Confirmation Modal */}
       {deleteProduct && (
-        <div className="products-modal-overlay" onClick={() => setDeleteProduct(null)}>
-          <div className="products-modal" onClick={e => e.stopPropagation()}>
+        <div
+          className="products-modal-overlay"
+          onClick={() => setDeleteProduct(null)}
+        >
+          <div className="products-modal" onClick={(e) => e.stopPropagation()}>
             <div className="products-modal-header">
               <h2>Confirmer la suppression</h2>
               <button
@@ -442,9 +529,13 @@ export default function Products() {
               </button>
             </div>
             <div className="products-modal-body">
-              <p>Êtes-vous sûr de vouloir supprimer le produit <strong>"{deleteProduct.name}"</strong> ?</p>
+              <p>
+                Êtes-vous sûr de vouloir supprimer le produit{" "}
+                <strong>"{deleteProduct.name}"</strong> ?
+              </p>
               <p className="products-delete-warning">
-                Cette action est irréversible et supprimera également tous les scénarios associés.
+                Cette action est irréversible et supprimera également tous les
+                scénarios associés.
               </p>
             </div>
             <div className="products-modal-footer">
@@ -467,8 +558,14 @@ export default function Products() {
 
       {/* Scenario Delete Confirmation Modal */}
       {deleteScenarioConfirm && (
-        <div className="products-modal-overlay products-modal-overlay-top" onClick={() => setDeleteScenarioConfirm(null)}>
-          <div className="products-modal products-modal-top" onClick={e => e.stopPropagation()}>
+        <div
+          className="products-modal-overlay products-modal-overlay-top"
+          onClick={() => setDeleteScenarioConfirm(null)}
+        >
+          <div
+            className="products-modal products-modal-top"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="products-modal-header">
               <h2>Confirmer la suppression</h2>
               <button
@@ -479,9 +576,13 @@ export default function Products() {
               </button>
             </div>
             <div className="products-modal-body">
-              <p>Êtes-vous sûr de vouloir supprimer le scénario <strong>"{deleteScenarioConfirm.name}"</strong> ?</p>
+              <p>
+                Êtes-vous sûr de vouloir supprimer le scénario{" "}
+                <strong>"{deleteScenarioConfirm.name}"</strong> ?
+              </p>
               <p className="products-delete-warning">
-                Cette action est irréversible et supprimera toutes les données associées à ce scénario.
+                Cette action est irréversible et supprimera toutes les données
+                associées à ce scénario.
               </p>
             </div>
             <div className="products-modal-footer">
@@ -504,13 +605,16 @@ export default function Products() {
 
       {/* Scenario Management Modal */}
       {manageScenariosProduct && (
-        <div className="products-modal-overlay" onClick={() => {
-          setManageScenariosProduct(null);
-          setScenarios([]);
-          setEditingScenario(null);
-          setScenarioForm({ name: "" });
-        }}>
-          <div className="products-modal" onClick={e => e.stopPropagation()}>
+        <div
+          className="products-modal-overlay"
+          onClick={() => {
+            setManageScenariosProduct(null);
+            setScenarios([]);
+            setEditingScenario(null);
+            setScenarioForm({ name: "" });
+          }}
+        >
+          <div className="products-modal" onClick={(e) => e.stopPropagation()}>
             <div className="products-modal-header">
               <h2>Scénarios de "{manageScenariosProduct.name}"</h2>
               <button
@@ -529,22 +633,31 @@ export default function Products() {
               {/* Create new scenario */}
               <div className="products-form-group">
                 <label htmlFor="new-scenario-name">Nouveau scénario</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: "flex", gap: "8px" }}>
                   <input
                     id="new-scenario-name"
                     type="text"
                     value={scenarioForm.name}
-                    onChange={(e) => setScenarioForm(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) =>
+                      setScenarioForm((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
                     placeholder="Nom du scénario"
                     style={{ flex: 1 }}
                   />
                   <button
                     className="products-modal-btn create"
-                    onClick={editingScenario ? handleUpdateScenario : handleCreateScenario}
+                    onClick={
+                      editingScenario
+                        ? handleUpdateScenario
+                        : handleCreateScenario
+                    }
                     disabled={!scenarioForm.name.trim()}
-                    style={{ padding: '8px 16px', fontSize: '14px' }}
+                    style={{ padding: "8px 16px", fontSize: "14px" }}
                   >
-                    {editingScenario ? 'Modifier' : 'Créer'}
+                    {editingScenario ? "Modifier" : "Créer"}
                   </button>
                   {editingScenario && (
                     <button
@@ -553,7 +666,7 @@ export default function Products() {
                         setEditingScenario(null);
                         setScenarioForm({ name: "" });
                       }}
-                      style={{ padding: '8px 16px', fontSize: '14px' }}
+                      style={{ padding: "8px 16px", fontSize: "14px" }}
                     >
                       Annuler
                     </button>
@@ -563,8 +676,11 @@ export default function Products() {
 
               {/* Scenarios list */}
               <div className="scenarios-list">
-                {scenarios.map(scenario => (
-                  <div key={scenario.id} className={`scenario-item ${scenario.is_default ? 'default' : ''}`}>
+                {scenarios.map((scenario) => (
+                  <div
+                    key={scenario.id}
+                    className={`scenario-item ${scenario.is_default ? "default" : ""}`}
+                  >
                     <div className="scenario-info">
                       <span className="scenario-name">{scenario.name}</span>
                       {scenario.is_default && (
@@ -601,7 +717,13 @@ export default function Products() {
                   </div>
                 ))}
                 {scenarios.length === 0 && (
-                  <p style={{ textAlign: 'center', color: '#636e72', padding: '20px' }}>
+                  <p
+                    style={{
+                      textAlign: "center",
+                      color: "#636e72",
+                      padding: "20px",
+                    }}
+                  >
                     Aucun scénario créé pour ce produit.
                   </p>
                 )}

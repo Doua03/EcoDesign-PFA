@@ -18,28 +18,40 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/products" element={
-          <div className="app-layout">
-            <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(o => !o)} />
-            <div className={`app-main${sidebarOpen ? " sidebar-open" : ""}`}>
-              <Header />
-              <div className="app-content">
-                <Products />
+        <Route
+          path="/products"
+          element={
+            <div className="app-layout">
+              <Sidebar
+                isOpen={sidebarOpen}
+                onToggle={() => setSidebarOpen((o) => !o)}
+              />
+              <div className={`app-main${sidebarOpen ? " sidebar-open" : ""}`}>
+                <Header />
+                <div className="app-content">
+                  <Products />
+                </div>
               </div>
             </div>
-          </div>
-        } />
-        <Route path="/app" element={
-          <div className="app-layout">
-            <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(o => !o)} />
-            <div className={`app-main${sidebarOpen ? " sidebar-open" : ""}`}>
-              <Header />
-              <div className="app-content">
-                <ProductDescription />
+          }
+        />
+        <Route
+          path="/app"
+          element={
+            <div className="app-layout">
+              <Sidebar
+                isOpen={sidebarOpen}
+                onToggle={() => setSidebarOpen((o) => !o)}
+              />
+              <div className={`app-main${sidebarOpen ? " sidebar-open" : ""}`}>
+                <Header />
+                <div className="app-content">
+                  <ProductDescription />
+                </div>
               </div>
             </div>
-          </div>
-        } />
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
