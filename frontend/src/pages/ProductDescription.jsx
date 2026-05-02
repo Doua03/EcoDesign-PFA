@@ -750,10 +750,10 @@ export default function ProductDescription() {
 
     const result = await api.post(`/api/scenarios/${activeScenario.id}/save/`, body);
     if (result.error) {
-      setSaveMsg(`❌ ${result.error}`);
+      setSaveMsg(` ${result.error}`);
     } else {
       setImpactResult(result);
-      setSaveMsg(`✅ Calculé — Éco-coût: €${result.total_eco_cost} · CO₂: ${result.total_carbon_kg} kg`);
+      setSaveMsg(` Calculé: Éco-coût: €${result.total_eco_cost} · CO₂: ${result.total_carbon_kg} kg`);
     }
     setSaving(false);
   };

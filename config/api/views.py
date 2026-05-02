@@ -650,10 +650,11 @@ def scenario_save(request, scenario_id):
         total_carbon_kg = mat_co2 + trans_co2 + ener_co2 + prod_co2 + eol_co2
 
         # ── 7. Save ImpactResult ──
-        product = Product.objects.filter(default_scenario=scenario, user=user).first()
+        # Get the product directly from the scenario's product FK
+        product = scenario.product
         if not product:
-            # Try to find by any scenario link
-            product = Product.objects.filter(user=user).first()
+            # Legacy fallback: try to find via default_scenario relationship
+            product = Product.objects.filter(default_scenario=scenario, user=user).first()
  
         if product:
            ImpactResult.objects.update_or_create(
