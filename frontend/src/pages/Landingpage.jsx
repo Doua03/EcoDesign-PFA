@@ -2,36 +2,99 @@ import { useState, useEffect, useRef } from "react";
 import "./Landingpage.css";
 import { Link } from "react-router-dom";
 
-const NAV_LINKS = ["Fonctionnalités", "Comment ça marche", "Tarification", "À propos"];
+const NAV_LINKS = [
+  { label: "Fonctionnalités",    id: "fonctionnalites" },
+  { label: "Comment ça marche",  id: "comment-ca-marche" },
+  { label: "Tarification",       id: "tarification" },
+  { label: "À propos",           id: "a-propos" },
+];
+
+/* ── Feature SVG icons ── */
+const IconLeaf = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+  </svg>
+);
+
+const IconBolt = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+  </svg>
+);
+
+const IconBarChart = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"/>
+    <line x1="12" y1="20" x2="12" y2="4"/>
+    <line x1="6"  y1="20" x2="6"  y2="14"/>
+    <line x1="2"  y1="20" x2="22" y2="20"/>
+  </svg>
+);
+
+const IconDatabase = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+    <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+    <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+  </svg>
+);
+
+const IconSpark = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+  </svg>
+);
+
+const IconFileText = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+    <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+    <line x1="8" y1="13" x2="16" y2="13"/>
+    <line x1="8" y1="17" x2="13" y2="17"/>
+  </svg>
+);
+
+const IconCheck = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
+const IconMinus = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+    <line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+);
 
 const FEATURES = [
   {
-    icon: "🌿",
+    Icon: IconLeaf,
     title: "Analyse du Cycle de Vie",
     desc: "Évaluez l'impact environnemental de vos produits à chaque étape — de la matière première à la fin de vie.",
   },
   {
-    icon: "⚡",
+    Icon: IconBolt,
     title: "Calcul en Temps Réel",
     desc: "Obtenez instantanément vos indicateurs d'éco-coûts et d'empreinte carbone dès que vous saisissez vos données.",
   },
   {
-    icon: "📊",
+    Icon: IconBarChart,
     title: "Comparaison de Scénarios",
     desc: "Testez plusieurs configurations et comparez visuellement leur impact pour choisir la solution la plus durable.",
   },
   {
-    icon: "🗄️",
+    Icon: IconDatabase,
     title: "Base Idemat Intégrée",
     desc: "Accédez à plus de 2 300 matériaux, énergies et procédés issus de la base de données Idemat 2026.",
   },
   {
-    icon: "🤖",
-    title: "Recommandations IA",
-    desc: "Recevez des suggestions intelligentes pour réduire l'impact environnemental de vos produits.",
+    Icon: IconSpark,
+    title: "Recommandations Intelligentes",
+    desc: "Recevez des suggestions ciblées pour réduire l'impact environnemental de vos produits, phase par phase.",
   },
   {
-    icon: "📄",
+    Icon: IconFileText,
     title: "Rapports Exportables",
     desc: "Générez des rapports détaillés prêts à partager avec vos équipes, clients ou auditeurs.",
   },
@@ -87,7 +150,11 @@ export default function LandingPage() {
             <img src="/Logo.png" alt="EcoDesign" className="lp-logo-img" />
           </div>
           <ul className={`lp-nav-links ${menuOpen ? "open" : ""}`}>
-            {NAV_LINKS.map((l, i) => <li key={i}><a href={`#${l}`}>{l}</a></li>)}
+            {NAV_LINKS.map((l, i) => (
+              <li key={i}>
+                <a href={`#${l.id}`} onClick={() => setMenuOpen(false)}>{l.label}</a>
+              </li>
+            ))}
           </ul>
           <div className="lp-nav-actions">
             <Link to="/login" className="lp-btn-ghost">Connexion</Link>
@@ -194,7 +261,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ── */}
-      <section className="lp-features" id="Fonctionnalités" ref={featRef}>
+      <section className="lp-features" id="fonctionnalites" ref={featRef}>
         <div className="lp-container">
           <div className={`lp-section-head ${featVisible ? "visible" : ""}`}>
             <span className="lp-eyebrow">Fonctionnalités</span>
@@ -204,7 +271,7 @@ export default function LandingPage() {
             {FEATURES.map((f, i) => (
               <div key={i} className={`lp-feature-card ${featVisible ? "visible" : ""}`}
                 style={{ animationDelay: `${i * 0.1}s` }}>
-                <div className="lp-feature-icon">{f.icon}</div>
+                <div className="lp-feature-icon"><f.Icon /></div>
                 <h3>{f.title}</h3>
                 <p>{f.desc}</p>
               </div>
@@ -214,7 +281,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="lp-steps" id="Comment-ça-marche" ref={stepsRef}>
+      <section className="lp-steps" id="comment-ca-marche" ref={stepsRef}>
         <div className="lp-container">
           <div className={`lp-section-head ${stepsVisible ? "visible" : ""}`}>
             <span className="lp-eyebrow">Comment ça marche</span>
@@ -245,6 +312,102 @@ export default function LandingPage() {
               <span className="lp-stat-lbl">{s.label}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── Tarification ── */}
+      <section className="lp-pricing" id="tarification">
+        <div className="lp-container">
+          <div className="lp-section-head visible">
+            <span className="lp-eyebrow">Tarification</span>
+            <h2>Simple, transparent,<br />sans surprise</h2>
+          </div>
+          <div className="lp-pricing-grid">
+            <div className="lp-pricing-card">
+              <div className="lp-pricing-badge">Gratuit</div>
+              <div className="lp-pricing-price"><span className="lp-pricing-amount">0 €</span><span className="lp-pricing-period">/mois</span></div>
+              <p className="lp-pricing-desc">Idéal pour découvrir l'outil et réaliser vos premières analyses.</p>
+              <ul className="lp-pricing-features">
+                <li><IconCheck /> 3 produits</li>
+                <li><IconCheck /> 2 scénarios par produit</li>
+                <li><IconCheck /> Accès base Idemat complète</li>
+                <li><IconCheck /> Calcul éco-coûts & CO₂</li>
+                <li className="lp-pricing-disabled"><IconMinus /> Recommandations intelligentes</li>
+                <li className="lp-pricing-disabled"><IconMinus /> Export de rapports</li>
+              </ul>
+              <Link to="/register" className="lp-btn-ghost lp-pricing-cta">Commencer gratuitement</Link>
+            </div>
+            <div className="lp-pricing-card lp-pricing-card--featured">
+              <div className="lp-pricing-badge lp-pricing-badge--green">Pro</div>
+              <div className="lp-pricing-price"><span className="lp-pricing-amount">29 €</span><span className="lp-pricing-period">/mois</span></div>
+              <p className="lp-pricing-desc">Pour les équipes qui font de l'éco-conception un avantage compétitif.</p>
+              <ul className="lp-pricing-features">
+                <li><IconCheck /> Produits illimités</li>
+                <li><IconCheck /> Scénarios illimités</li>
+                <li><IconCheck /> Accès base Idemat complète</li>
+                <li><IconCheck /> Calcul éco-coûts & CO₂</li>
+                <li><IconCheck /> Recommandations intelligentes</li>
+                <li><IconCheck /> Export PDF & rapports</li>
+              </ul>
+              <Link to="/register" className="lp-btn-primary lp-pricing-cta">Démarrer l'essai gratuit</Link>
+            </div>
+            <div className="lp-pricing-card">
+              <div className="lp-pricing-badge">Entreprise</div>
+              <div className="lp-pricing-price"><span className="lp-pricing-amount">Sur devis</span></div>
+              <p className="lp-pricing-desc">Déploiement sur mesure pour les grandes organisations et bureaux d'études.</p>
+              <ul className="lp-pricing-features">
+                <li><IconCheck /> Tout le plan Pro</li>
+                <li><IconCheck /> SSO & gestion des accès</li>
+                <li><IconCheck /> Intégration API</li>
+                <li><IconCheck /> Support dédié</li>
+                <li><IconCheck /> Formation équipe</li>
+                <li><IconCheck /> SLA garanti</li>
+              </ul>
+              <a href="mailto:contact@ecodesign.app" className="lp-btn-ghost lp-pricing-cta">Nous contacter</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── À propos ── */}
+      <section className="lp-about" id="a-propos">
+        <div className="lp-container lp-about-inner">
+          <div className="lp-about-text">
+            <span className="lp-eyebrow">À propos</span>
+            <h2>Conçu par des ingénieurs,<br />pour des concepteurs</h2>
+            <p>
+              EcoDesign est né d'un constat simple : les outils d'Analyse du Cycle de Vie
+              existants sont trop complexes, trop coûteux, ou trop déconnectés du quotidien
+              des équipes de conception.
+            </p>
+            <p>
+              Notre mission est de rendre l'éco-conception accessible à tous — des startups
+              aux grands groupes industriels — en combinant la rigueur méthodologique de la
+              norme ISO 14040/14044 avec une expérience utilisateur moderne.
+            </p>
+            <p>
+              La base de données <strong>Idemat 2026</strong>, développée par la TU Delft,
+              fournit des données environnementales fiables sur plus de 2 300 matériaux,
+              sources d'énergie et procédés de fabrication.
+            </p>
+            <div className="lp-about-tags">
+              <span>ISO 14040 / 14044</span>
+              <span>Idemat 2026</span>
+              <span>Open methodology</span>
+              <span>Made in France</span>
+            </div>
+          </div>
+          <div className="lp-about-visual">
+            <div className="lp-about-card">
+              <div className="lp-about-stat"><span>2 300+</span><p>entrées dans la base Idemat</p></div>
+              <div className="lp-about-divider" />
+              <div className="lp-about-stat"><span>5</span><p>phases du cycle de vie analysées</p></div>
+              <div className="lp-about-divider" />
+              <div className="lp-about-stat"><span>2</span><p>indicateurs clés : éco-coût & CO₂</p></div>
+              <div className="lp-about-divider" />
+              <div className="lp-about-stat"><span>KNN</span><p>algorithme de recommandation Pareto-optimal</p></div>
+            </div>
+          </div>
         </div>
       </section>
 

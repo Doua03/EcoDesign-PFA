@@ -1,0 +1,281 @@
+.settings-page {
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  color: #2d3436;
+  padding: 40px 32px 80px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ── Title ── */
+.settings-title-row {
+  margin-bottom: 32px;
+}
+
+.settings-title-row h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2d3436;
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+}
+
+.settings-title-row p {
+  font-size: 13px;
+  color: #636e72;
+  margin: 0;
+}
+
+/* ── Card ── */
+.settings-card {
+  background: #ffffff;
+  border: 1px solid #dfe6e9;
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.settings-card--danger {
+  border-color: #fad7d3;
+  background: #fffafa;
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  color: #5EAA28;
+}
+
+.settings-card--danger .settings-card-header {
+  color: #e74c3c;
+}
+
+.settings-card-header h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2d3436;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* ── Field ── */
+.settings-field {
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f2f6;
+}
+
+.settings-field:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.settings-field:first-of-type {
+  padding-top: 0;
+}
+
+.settings-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3436;
+  margin-bottom: 10px;
+}
+
+.settings-field-desc {
+  font-size: 12px;
+  color: #636e72;
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+/* ── Toggle field ── */
+.settings-field--toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-field--toggle label {
+  margin-bottom: 2px;
+}
+
+/* ── Radio group ── */
+.settings-radio-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settings-radio {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: 1.5px solid #dfe6e9;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #636e72;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.settings-radio input[type="radio"] {
+  display: none;
+}
+
+.settings-radio.active {
+  border-color: #5EAA28;
+  background: #f2f9ec;
+  color: #5EAA28;
+  font-weight: 700;
+}
+
+.settings-radio.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settings-soon {
+  font-size: 10px;
+  background: #f1f2f6;
+  color: #b2bec3;
+  border-radius: 20px;
+  padding: 1px 7px;
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+/* ── Toggle switch ── */
+.settings-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: #dfe6e9;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.settings-toggle.on {
+  background: #5EAA28;
+}
+
+.settings-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+
+.settings-toggle.on .settings-toggle-knob {
+  transform: translateX(20px);
+}
+
+/* ── Value row (danger zone) ── */
+.settings-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Danger button ── */
+.settings-btn-danger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: #e74c3c;
+  border: 1.5px solid #fad7d3;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.settings-btn-danger:hover {
+  background: #fdecea;
+  border-color: #e74c3c;
+}
+
+/* ── Confirm row ── */
+.settings-confirm-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.settings-confirm-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e74c3c;
+}
+
+.settings-btn-cancel {
+  padding: 7px 14px;
+  background: transparent;
+  color: #636e72;
+  border: 1.5px solid #dfe6e9;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.settings-btn-cancel:hover { border-color: #636e72; }
+
+/* ── Save bar ── */
+.settings-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.settings-saved-msg {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5EAA28;
+}
+
+.settings-btn-save {
+  padding: 11px 24px;
+  background: #5EAA28;
+  color: #ffffff;
+  border: none;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.settings-btn-save:hover {
+  background: #4a8a20;
+  box-shadow: 0 4px 12px rgba(94,170,40,0.3);
+}

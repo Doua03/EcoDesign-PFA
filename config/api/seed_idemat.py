@@ -9,13 +9,15 @@ EXCEL_PATH = Path("idemat.xlsx")
 from api.models import Material, Energy, Transport, Production, EndOfLife
 
 # ── Column indices in the raw sheet (0-based) ─────────────────────────────────
-COL_SHORT_NAME = 2
-COL_SUBTYPE    = 1
-COL_CATEGORY   = 3
-COL_UNIT       = 4
-COL_NAME       = 5
-COL_ECO_COST   = 6
-COL_CARBON     = 13
+COL_SHORT_NAME   = 2
+COL_SUBTYPE      = 1
+COL_CATEGORY     = 3
+COL_UNIT         = 4
+COL_NAME         = 5
+COL_ECO_COST     = 6
+COL_CARBON       = 13
+COL_CED_MJ       = 16   # CED (Total) MJ
+COL_ECO_SCARCITY = 10   # eco-costs of resource scarcity (euro)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -77,6 +79,8 @@ def seed(path: Path):
 
         eco_cost  = float(row[COL_ECO_COST])
         carbon_kg = float(row[COL_CARBON])
+        ced_mj       = float(row[COL_CED_MJ])       if _is_numeric(row[COL_CED_MJ])       else 0.0
+        eco_scarcity = float(row[COL_ECO_SCARCITY]) if _is_numeric(row[COL_ECO_SCARCITY]) else 0.0
 
         common = dict(
             name=name,
@@ -84,30 +88,32 @@ def seed(path: Path):
             eco_cost=eco_cost,
             carbon_kg=carbon_kg,
             unit=unit,
+            ced_mj=ced_mj,
+            eco_scarcity=eco_scarcity,
         )
 
         if model_name == "Material":
-            obj, created = Material.objects.get_or_create(
+            obj, created = Material.objects.update_or_create(
                 short_name=short_name,
                 defaults=common,
             )
         elif model_name == "Energy":
-            obj, created = Energy.objects.get_or_create(
+            obj, created = Energy.objects.update_or_create(
                 short_name=short_name,
                 defaults={**common, "unit": unit or "kWh"},
             )
         elif model_name == "Transport":
-            obj, created = Transport.objects.get_or_create(
+            obj, created = Transport.objects.update_or_create(
                 short_name=short_name,
                 defaults={**common, "unit": unit or "km"},
             )
         elif model_name == "Production":
-            obj, created = Production.objects.get_or_create(
+            obj, created = Production.objects.update_or_create(
                 short_name=short_name,
                 defaults={**common, "unit": unit or "unit"},
             )
         elif model_name == "EndOfLife":
-            obj, created = EndOfLife.objects.get_or_create(
+            obj, created = EndOfLife.objects.update_or_create(
                 short_name=short_name,
                 defaults={**common, "unit": unit or "kg"},
             )
@@ -118,7 +124,6 @@ def seed(path: Path):
             counters[model_name]["created"] += 1
         else:
             counters[model_name]["skipped"] += 1
-            print(f"Skipped {model_name} row (already exists): {short_name} / {name}")
 
     print("\n── Seeding complete ──────────────────────────────────────")
     for model, c in counters.items():

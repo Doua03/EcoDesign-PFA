@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronUp, ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { ChevronUp, ChevronDown, User, Settings, LogOut } from "lucide-react";
 import "./Header.css";
 
-export default function Header({ sidebarWidth = 60 }) {
+export default function Header() {
   const navigate = useNavigate();
   const [user,         setUser]        = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -39,14 +39,10 @@ export default function Header({ sidebarWidth = 60 }) {
     : '?';
 
   return (
-    <header className="header" style={{ left: sidebarWidth }}>
+    <header className="header">
       <div className="header-left">
         <div className="header-logo">
           <img src="/Logo.png" alt="EcoDesign" />
-        </div>
-        <div className="header-search">
-          <span className="header-search-icon"><Search size={15} /></span>
-          <input placeholder="Search" />
         </div>
       </div>
 
@@ -74,10 +70,10 @@ export default function Header({ sidebarWidth = 60 }) {
 
             <div className="header-dropdown-divider" />
 
-            <button className="header-dropdown-item">
+            <button className="header-dropdown-item" onClick={() => { setDropdownOpen(false); navigate('/profile'); }}>
               <User size={15} /> Mon profil
             </button>
-            <button className="header-dropdown-item">
+            <button className="header-dropdown-item" onClick={() => { setDropdownOpen(false); navigate('/settings'); }}>
               <Settings size={15} /> Paramètres
             </button>
 

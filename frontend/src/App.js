@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/Landingpage";
 import ProductDescription from "./pages/ProductDescription";
 import Products from "./pages/Products";
+import Pricing from "./pages/Pricing";
+import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
 import Header from "./components/shared/Header";
 import Sidebar from "./components/shared/Sidebar";
 import Signup from "./pages/Signup";
@@ -47,6 +51,74 @@ function App() {
                 <Header />
                 <div className="app-content">
                   <ProductDescription />
+                </div>
+              </div>
+            </div>
+          }
+        />
+        <Route
+          path="/pricing"
+          element={
+            <div className="app-layout">
+              <Sidebar
+                isOpen={sidebarOpen}
+                onToggle={() => setSidebarOpen((o) => !o)}
+              />
+              <div className={`app-main${sidebarOpen ? " sidebar-open" : ""}`}>
+                <Header />
+                <div className="app-content">
+                  <Pricing />
+                </div>
+              </div>
+            </div>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <div className="app-layout">
+              <Sidebar
+                isOpen={sidebarOpen}
+                onToggle={() => setSidebarOpen((o) => !o)}
+              />
+              <div className={`app-main${sidebarOpen ? " sidebar-open" : ""}`}>
+                <Header />
+                <div className="app-content">
+                  <Profile />
+                </div>
+              </div>
+            </div>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <div className="app-layout">
+              <Sidebar
+                isOpen={sidebarOpen}
+                onToggle={() => setSidebarOpen((o) => !o)}
+              />
+              <div className={`app-main${sidebarOpen ? " sidebar-open" : ""}`}>
+                <Header />
+                <div className="app-content">
+                  <Dashboard />
+                </div>
+              </div>
+            </div>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <div className="app-layout">
+              <Sidebar
+                isOpen={sidebarOpen}
+                onToggle={() => setSidebarOpen((o) => !o)}
+              />
+              <div className={`app-main${sidebarOpen ? " sidebar-open" : ""}`}>
+                <Header />
+                <div className="app-content">
+                  <Settings />
                 </div>
               </div>
             </div>

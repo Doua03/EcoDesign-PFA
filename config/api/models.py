@@ -4,9 +4,16 @@ from django.contrib.auth.hashers import make_password, check_password
 # USER
 # =========================
 class User(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    PLAN_CHOICES = [
+        ('free',       'Gratuit'),
+        ('pro',        'Pro'),
+        ('enterprise', 'Entreprise'),
+    ]
+
+    name     = models.CharField(max_length=100)
+    email    = models.EmailField(unique=True)
     password = models.CharField(max_length=128)
+    plan     = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
 
     class Meta:
         db_table = 'user'
@@ -61,7 +68,8 @@ class Material(models.Model):
     eco_cost = models.FloatField()
     carbon_kg = models.FloatField()
     unit = models.CharField(max_length=50, default="kg")
-
+    ced_mj = models.FloatField(default=0.0)
+    eco_scarcity = models.FloatField(default=0.0)
 
     class Meta:
         db_table = 'material'
@@ -92,7 +100,8 @@ class Energy(models.Model):
     eco_cost = models.FloatField()
     carbon_kg = models.FloatField()
     unit = models.CharField(max_length=50, default="kWh")
-
+    ced_mj = models.FloatField(default=0.0)
+    eco_scarcity = models.FloatField(default=0.0)
 
     class Meta:
         db_table = 'energy'
@@ -120,7 +129,8 @@ class Transport(models.Model):
     eco_cost = models.FloatField()
     carbon_kg = models.FloatField()
     unit = models.CharField(max_length=50, default="km")
-
+    ced_mj = models.FloatField(default=0.0)
+    eco_scarcity = models.FloatField(default=0.0)
 
     class Meta:
         db_table = 'transport'
@@ -148,7 +158,8 @@ class Production(models.Model):
     eco_cost = models.FloatField()
     carbon_kg = models.FloatField()
     unit = models.CharField(max_length=50, default="unit")
-
+    ced_mj = models.FloatField(default=0.0)
+    eco_scarcity = models.FloatField(default=0.0)
 
     class Meta:
         db_table = 'production'
@@ -176,7 +187,8 @@ class EndOfLife(models.Model):
     eco_cost = models.FloatField()
     carbon_kg = models.FloatField()
     unit = models.CharField(max_length=50, default="kg")
-
+    ced_mj = models.FloatField(default=0.0)
+    eco_scarcity = models.FloatField(default=0.0)
 
     class Meta:
         db_table = 'end_of_life'

@@ -412,8 +412,8 @@
 
 .pd-tab.active {
   font-weight: 700;
-  color: #2ecc71;
-  border-bottom: 2.5px solid #2ecc71;
+  color: #5EAA28;
+  border-bottom: 2.5px solid #5EAA28;
 }
 
 .pd-tab-actions {
@@ -435,7 +435,7 @@
   transition: background 0.2s;
 }
 
-.pd-tab-edit:hover   { background: #eafaf1; color: #2ecc71; }
+.pd-tab-edit:hover   { background: #eafaf1; color: #5EAA28; }
 .pd-tab-delete:hover { background: #fdecea; color: #e74c3c; }
 
 .pd-tab-add {
@@ -446,7 +446,7 @@
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  color: #2ecc71;
+  color: #5EAA28;
   transition: all 0.2s;
   font-family: inherit;
   margin-left: 4px;
@@ -454,7 +454,7 @@
 
 .pd-tab-add:hover {
   background: #eafaf1;
-  border-color: #2ecc71;
+  border-color: #5EAA28;
 }
 
 /* Product header */
@@ -504,8 +504,8 @@
 }
 
 .pd-btn-icon:hover {
-  border-color: #2ecc71;
-  color: #2ecc71;
+  border-color: #5EAA28;
+  color: #5EAA28;
 }
 
 .pd-btn-icon-danger:hover {
@@ -632,7 +632,7 @@
 }
 
 .pd-modal-field input:focus,
-.pd-modal-field textarea:focus { border-color: #2ecc71; }
+.pd-modal-field textarea:focus { border-color: #5EAA28; }
 
 .pd-modal-error {
   background: #fdecea;
@@ -675,7 +675,7 @@
   padding: 9px 20px;
   border: none;
   border-radius: 100px;
-  background: #2ecc71;
+  background: #5EAA28;
   font-size: 13px;
   font-weight: 700;
   color: #ffffff;
@@ -685,8 +685,8 @@
 }
 
 .pd-btn-save:hover:not(:disabled) {
-  background: #1a9e52;
-  box-shadow: 0 4px 12px rgba(46,204,113,0.35);
+  background: #4a8a20;
+  box-shadow: 0 4px 12px rgba(94,170,40,0.3);
 }
 
 .pd-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -761,8 +761,8 @@
   font-weight: 800;
 }
 
-.pd-impact-value.green { color: #2ecc71; }
-.pd-impact-value.blue  { color: #74b9ff; }
+.pd-impact-value.green { color: #5EAA28; }
+.pd-impact-value.blue  { color: #6a9fc0; }
 
 /* Donut empty state */
 .pd-donut-empty {
@@ -877,7 +877,7 @@
 }
 
 .pd-scenario-item.active {
-  border-color: #2ecc71;
+  border-color: #5EAA28;
   background: #eafaf1;
 }
 
@@ -970,8 +970,8 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: #eafaf1;
-  border: 1.5px solid #a9dfbf;
+  background: #f2f9ec;
+  border: 1.5px solid #c5e0a8;
   border-radius: 12px;
   padding: 12px 14px;
 }
@@ -983,7 +983,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #1a9e52;
+  color: #5EAA28;
   margin-bottom: 2px;
 }
 
@@ -1041,12 +1041,12 @@
 
 .pd-cmp-bar {
   height: 100%;
-  background: #74b9ff;
+  background: #a8c8e0;
   border-radius: 6px;
   transition: width 0.4s ease;
 }
 
-.pd-cmp-bar.best { background: #2ecc71; }
+.pd-cmp-bar.best { background: #5EAA28; }
 
 .pd-cmp-value {
   font-size: 11.5px;
@@ -1057,7 +1057,7 @@
   text-align: right;
 }
 
-.pd-cmp-value.best { color: #1a9e52; }
+.pd-cmp-value.best { color: #5EAA28; }
 
 .pd-cmp-star { color: #f1c40f; }
 
@@ -1104,7 +1104,7 @@
 
 .pd-reco-btn {
   padding: 8px 16px;
-  background: #2ecc71;
+  background: #5EAA28;
   border: none;
   border-radius: 20px;
   font-size: 12px;
@@ -1118,8 +1118,8 @@
 }
 
 .pd-reco-btn:hover {
-  background: #1a9e52;
-  box-shadow: 0 4px 12px rgba(46,204,113,0.3);
+  background: #4a8a20;
+  box-shadow: 0 4px 12px rgba(94,170,40,0.25);
 }
 
 .pd-reco-title {
@@ -1136,12 +1136,11 @@
   line-height: 1.5;
 }
 
-/* Spinner shown in header while loading */
 .pd-reco-spinner-inline {
   width: 18px;
   height: 18px;
   border: 2.5px solid #dfe6e9;
-  border-top-color: #2ecc71;
+  border-top-color: #5EAA28;
   border-radius: 50%;
   animation: reco-spin 0.7s linear infinite;
   flex-shrink: 0;
@@ -1152,7 +1151,6 @@
   to { transform: rotate(360deg); }
 }
 
-/* Loading / empty state */
 .pd-reco-state {
   display: flex;
   flex-direction: column;
@@ -1169,7 +1167,7 @@
   width: 28px;
   height: 28px;
   border: 3px solid #dfe6e9;
-  border-top-color: #2ecc71;
+  border-top-color: #5EAA28;
   border-radius: 50%;
   animation: reco-spin 0.7s linear infinite;
 }
@@ -1195,7 +1193,7 @@
 .pd-reco-summary-val {
   font-size: 16px;
   font-weight: 800;
-  color: #1a9e52;
+  color: #5EAA28;
 }
 
 .pd-reco-summary-lbl {
@@ -1206,117 +1204,158 @@
   color: #636e72;
 }
 
-/* Recommendation list */
-.pd-reco-list {
+/* ── Grouped cards ── */
+.pd-reco-groups {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-.pd-reco-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 14px 16px;
+.pd-reco-group {
   border: 1.5px solid #dfe6e9;
   border-radius: 12px;
+  overflow: hidden;
   background: #ffffff;
-  transition: border-color 0.2s;
 }
 
-.pd-reco-item.top {
-  border-color: #a9dfbf;
-  background: #f8fdfb;
-}
-
-.pd-reco-rank {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #dfe6e9;
-  color: #636e72;
-  font-size: 11px;
-  font-weight: 800;
+.pd-reco-group-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.pd-reco-item.top .pd-reco-rank {
-  background: #2ecc71;
-  color: #ffffff;
-}
-
-.pd-reco-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.pd-reco-phase {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f8fafb;
+  border-bottom: 1px solid #f1f2f6;
   flex-wrap: wrap;
+}
+
+.pd-reco-group-phase {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.pd-reco-phase-icon {
+  display: flex;
+  align-items: center;
 }
 
 .pd-reco-phase-label {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
 }
 
-/* Savings shown inline next to phase label */
-.pd-reco-savings-inline {
+.pd-reco-group-item-name {
+  font-size: 12px;
+  color: #636e72;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pd-reco-alt-row {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f2f6;
+}
+
+.pd-reco-alt-row:last-of-type {
+  border-bottom: none;
+}
+
+.pd-reco-alt-row.best {
+  background: #ffffff;
+  border-left: 3px solid #5EAA28;
+}
+.pd-reco-alt-row.secondary { background: #ffffff; opacity: 0.92; }
+
+.pd-reco-alt-header {
   display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
-/* Conseil — natural-language advice sentence */
-.pd-reco-conseil {
-  font-size: 12.5px;
-  color: #2d3436;
-  line-height: 1.55;
-  margin: 6px 0 8px;
-  padding: 8px 10px;
-  background: #f8fafb;
-  border-left: 3px solid #2ecc71;
-  border-radius: 0 6px 6px 0;
-}
-
-.pd-reco-subst {
+.pd-reco-alt-names {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .pd-reco-cur {
   font-size: 12px;
-  color: #636e72;
+  color: #b2bec3;
   text-decoration: line-through;
   word-break: break-word;
 }
 
 .pd-reco-arrow {
   font-size: 13px;
-  color: #2ecc71;
+  color: #5EAA28;
   font-weight: 700;
   flex-shrink: 0;
 }
 
-.pd-reco-alt {
+.pd-reco-alt-name {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #2d3436;
   word-break: break-word;
+}
+
+.pd-reco-alt-savings {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.pd-reco-save-co2 {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #5EAA28;
+}
+
+.pd-reco-save-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5EAA28;
+  background: #eafaf1;
+  border-radius: 20px;
+  padding: 1px 7px;
+}
+
+.pd-reco-save-eco {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a90c4;
+  background: #eff6ff;
+  border-radius: 20px;
+  padding: 1px 7px;
+}
+
+.pd-reco-conseil {
+  font-size: 12.5px;
+  color: #2d3436;
+  line-height: 1.55;
+  margin: 0 0 6px;
+  padding: 7px 10px;
+  background: #f8fafb;
+  border-left: 3px solid #5EAA28;
+  border-radius: 0 6px 6px 0;
+}
+
+.pd-reco-alt-row.secondary .pd-reco-conseil {
+  border-left-color: #b2bec3;
 }
 
 .pd-reco-meta {
@@ -1326,17 +1365,124 @@
   color: #b2bec3;
 }
 
-.pd-reco-save-co2 {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #1a9e52;
+.pd-reco-toggle-btn {
+  display: block;
+  width: 100%;
+  padding: 9px 14px;
+  background: #f8fafb;
+  border: none;
+  border-top: 1px solid #f1f2f6;
+  font-size: 12px;
+  font-weight: 600;
+  color: #636e72;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
 }
 
-.pd-reco-save-pct {
-  font-size: 11px;
-  font-weight: 700;
-  color: #1a9e52;
-  background: #eafaf1;
+.pd-reco-toggle-btn:hover {
+  background: #f2f9ec;
+  color: #5EAA28;
+}
+
+/* ── Plan limit banner ── */
+.pd-limit-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff8ec;
+  border: 1.5px solid #f5c842;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #7a5c00;
+  font-weight: 500;
+}
+
+.pd-limit-banner svg {
+  flex-shrink: 0;
+  color: #c49a00;
+}
+
+.pd-limit-banner span {
+  flex: 1;
+}
+
+.pd-limit-upgrade {
+  background: #5EAA28;
+  color: #fff;
+  border: none;
   border-radius: 20px;
-  padding: 1px 7px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.pd-limit-upgrade:hover { background: #4a8a20; }
+
+.pd-limit-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #b2a080;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* ── Recommendations locked (free plan) ── */
+.pd-reco-locked {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.pd-reco-locked-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: #f8fafb;
+  border: 1.5px solid #dfe6e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b2bec3;
+  flex-shrink: 0;
+}
+
+.pd-reco-locked-body {
+  flex: 1;
+}
+
+.pd-reco-locked-body .pd-reco-title {
+  margin-bottom: 4px;
+  color: #b2bec3;
+}
+
+.pd-reco-locked-body .pd-reco-subtitle {
+  margin-bottom: 12px;
+}
+
+.pd-reco-upgrade-btn {
+  padding: 7px 16px;
+  background: #5EAA28;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.pd-reco-upgrade-btn:hover {
+  background: #4a8a20;
 }

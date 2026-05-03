@@ -9,7 +9,9 @@ import {
   ChevronRight,
   Package,
   Settings,
+  Lock,
 } from "lucide-react";
+import { getPlanLimits } from "../utils/planLimits";
 import "./Products.css";
 
 /* ── API helpers ────────────────────────────────────── */
@@ -57,6 +59,7 @@ export default function Products() {
   const [editingScenario, setEditingScenario] = useState(null);
   const [scenarioForm, setScenarioForm] = useState({ name: "" });
   const [deleteScenarioConfirm, setDeleteScenarioConfirm] = useState(null);
+  const [limitError, setLimitError] = useState("");
 
   /* ── Load products ── */
   const loadProducts = useCallback(async () => {
@@ -117,14 +120,30 @@ export default function Products() {
 
     try {
       const result = await api.post("/api/products/", newProduct);
+      if (result.error === "plan_limit") {
+        setLimitError(result.detail);
+        setShowCreateModal(false);
+        return;
+      }
       if (!result.error) {
         setProducts((prev) => [result, ...prev]);
         setShowCreateModal(false);
         setNewProduct({ name: "", description: "", scenario_name: "" });
+        setLimitError("");
       }
     } catch (error) {
       console.error("Error creating product:", error);
     }
+  };
+
+  const openCreateModal = () => {
+    const limits = getPlanLimits();
+    if (products.length >= limits.maxProducts) {
+      setLimitError(`Vous avez atteint la limite de ${limits.maxProducts} produits du plan Gratuit.`);
+      return;
+    }
+    setLimitError("");
+    setShowCreateModal(true);
   };
 
   /* ── Handle delete product ── */
@@ -158,13 +177,21 @@ export default function Products() {
   const handleCreateScenario = async () => {
     if (!scenarioForm.name.trim() || !manageScenariosProduct) return;
 
+    const limits = getPlanLimits();
+    if (scenarios.length >= limits.maxScenariosPerProduct) {
+      setLimitError(`Vous avez atteint la limite de ${limits.maxScenariosPerProduct} scénarios par produit du plan Gratuit.`);
+      return;
+    }
+
     try {
       const result = await api.post(
         `/api/products/${manageScenariosProduct.id}/scenarios/`,
-        {
-          name: scenarioForm.name,
-        },
+        { name: scenarioForm.name },
       );
+      if (result.error === "plan_limit") {
+        setLimitError(result.detail);
+        return;
+      }
       if (!result.error) {
         setScenarios((prev) => [...prev, result]);
         setScenarioForm({ name: "" });
@@ -271,12 +298,24 @@ export default function Products() {
         </div>
         <button
           className="products-create-btn"
-          onClick={() => setShowCreateModal(true)}
+          onClick={openCreateModal}
         >
           <Plus size={16} />
           Nouveau Produit
         </button>
       </div>
+
+      {/* Plan limit banner */}
+      {limitError && (
+        <div className="products-limit-banner">
+          <Lock size={15} />
+          <span>{limitError}</span>
+          <button className="products-limit-upgrade" onClick={() => navigate("/pricing")}>
+            Passer au Pro →
+          </button>
+          <button className="products-limit-close" onClick={() => setLimitError("")}>×</button>
+        </div>
+      )}
 
       <div className="products-filters">
         <div className="products-search">

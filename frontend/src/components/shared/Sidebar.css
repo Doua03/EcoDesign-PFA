@@ -5,12 +5,12 @@
   font-family: 'Nunito', 'Segoe UI', sans-serif;
   display: flex;
   flex-direction: column;
-  padding: 17px 0;
-  height: calc(100vh - 70px);  /* ← subtract header height */
+  padding: 16px 0;
+  height: calc(100vh - 70px);
   position: fixed;
   left: 0;
-  top: 70px;                   /* ← start below header */
-  z-index: 99;                 /* ← lower than header */
+  top: 70px;
+  z-index: 99;
   transition: width 0.25s ease;
   overflow-x: hidden;
   overflow-y: auto;
@@ -33,7 +33,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
+  margin: 16px auto 12px;
   flex-shrink: 0;
   transition: transform 0.25s ease;
   position: relative;

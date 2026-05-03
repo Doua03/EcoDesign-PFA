@@ -1,114 +1,132 @@
-# 🌱 EcoDesign — Outil d'Analyse du Cycle de Vie (ACV)
+#  EcoDesign — Outil d'Analyse du Cycle de Vie (ACV)
 
-EcoDesign is a web application that helps industrial design teams measure, understand, and reduce the environmental impact of their products using **Life Cycle Assessment (LCA)**.
+EcoDesign est une application web qui aide les équipes de conception industrielle à mesurer, comprendre et réduire l'impact environnemental de leurs produits grâce à l'**Analyse du Cycle de Vie (ACV)**.
 
-Built with **Django REST** (backend) + **React** (frontend), powered by the **Idemat 2026** database.
-
----
-
-## 📋 Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Backend Setup](#backend-setup)
-  - [Frontend Setup](#frontend-setup)
-- [Database Seeding](#database-seeding)
-- [Environment Variables](#environment-variables)
-- [API Endpoints](#api-endpoints)
-- [Contributing](#contributing)
+Construit avec **Django** (backend) + **React** (frontend), alimenté par la base de données **Idemat 2026**.
 
 ---
 
-## ✨ Features
+##  Table des matières
 
-- 🔐 **Authentication** — Register, login, logout with session-based auth
-- 📦 **Product Management** — Full CRUD for products
-- 🗂 **Scenario Management** — Multiple LCA scenarios per product (create, switch, delete); results persist between sessions
-- 🌿 **Materials, Energy, Transport** — Dynamic dropdowns fed from the Idemat 2026 database (2,300+ entries)
-- ⚡ **Impact Calculation** — Eco-cost (€) and carbon footprint (kg CO₂) calculated on demand
-- 📊 **Results Visualization** — Donut chart showing impact breakdown per category
-- 📈 **Scenario Comparison** — Side-by-side bar charts and stacked phase breakdown across all calculated scenarios for a product
-- 🤖 **ML Recommendations** — K-Nearest Neighbours engine (scikit-learn) that suggests Pareto-better alternatives per phase with natural-language advice in French
-- 🧭 **ISO 14040 / 14044** compatible methodology
-
----
-
-## 🛠 Tech Stack
-
-| Layer          | Technology                                      |
-|----------------|-------------------------------------------------|
-| Frontend       | React 19, React Router, CSS Modules, Lucide React |
-| Backend        | Django 5, Django REST Framework                 |
-| Database       | PostgreSQL (via pgAdmin)                        |
-| LCA Data       | Idemat 2026 (Excel → seeded to DB)              |
-| Auth           | Django Sessions + CORS                          |
-| ML / Data      | scikit-learn 1.8, NumPy 2.x                     |
+- [Fonctionnalités](#-fonctionnalités)
+- [Tech Stack](#-tech-stack)
+- [Structure du projet](#-structure-du-projet)
+- [Démarrage rapide](#-démarrage-rapide)
+  - [Prérequis](#prérequis)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
+- [Seeding de la base de données](#-seeding-de-la-base-de-données)
+- [Variables d'environnement](#-variables-denvironnement)
+- [Plans & restrictions](#-plans--restrictions)
+- [API Endpoints](#-api-endpoints)
+- [Module ML — Recommandations](#-module-ml--recommandations)
 
 ---
 
-## 📁 Project Structure
+##  Fonctionnalités
+
+-  **Authentification** — Inscription, connexion, déconnexion avec sessions Django
+-  **Gestion des produits** — CRUD complet avec limite selon le plan
+-  **Gestion des scénarios** — Plusieurs scénarios ACV par produit ; résultats persistants entre sessions
+-  **Matériaux, Énergie, Transport, Packaging, Production, Fin de vie** — Menus dynamiques alimentés par Idemat 2026 (2 300+ entrées)
+-  **Calcul d'impact** — Éco-coût (€) et empreinte carbone (kg CO₂) calculés à la demande, avec **packaging séparé** dans la répartition
+-  **Visualisation** — Graphique donut par phase (matériaux, packaging, transport, énergie, production, fin de vie)
+-  **Comparaison de scénarios** — Graphiques en barres et répartition empilée par phase
+-  **Recommandations ML** — Moteur KNN 4D (scikit-learn) suggérant des alternatives Pareto-meilleures par phase, avec conseils en français
+-  **Méthodologie ISO 14040 / 14044** compatible
+-  **Tableau de bord** — KPIs, graphiques CO₂/éco-coût par produit, meilleur scénario par produit
+-  **Plans d'abonnement** — Gratuit / Pro / Entreprise avec restrictions appliquées côté frontend et backend
+-  **Profil utilisateur** — Modification du nom, mot de passe, affichage du plan actif
+-  **Paramètres** — Langue, thème, notifications, suppression de compte
+-  **Page Tarification** — Affichage du plan actif, boutons de contact pour évoluer
+
+---
+
+##  Tech Stack
+
+| Couche         | Technologie                                          |
+|----------------|------------------------------------------------------|
+| Frontend       | React 19, React Router 7, Lucide React, CSS          |
+| Backend        | Django 5.2, Django Sessions, CORS                    |
+| Base de données| PostgreSQL (via pgAdmin)                             |
+| Données LCA    | Idemat 2026 (Excel → seeded to DB)                   |
+| Auth           | Django Sessions + CORS                               |
+| ML / Data      | scikit-learn 1.8, NumPy 2.x, pandas, openpyxl        |
+
+---
+
+##  Structure du projet
 
 ```
 EcoDesign/
-├── config/                        # Django project
-│   ├── api/                       # Main Django app
-│   │   ├── models.py              # All data models
-│   │   ├── views.py               # API views
-│   │   ├── urls.py                # API routes
-│   │   ├── seed_idemat.py         # DB seeding script
-│   │   ├── ml/                    # ← ML recommendation module
-│   │   │   ├── __init__.py
-│   │   │   └── recommender.py     # KNN engine + conseil generator
+├── config/                          # Projet Django
+│   ├── api/
+│   │   ├── models.py                # User, Product, Scenario, Material, Energy,
+│   │   │                            # Transport, Production, EndOfLife, ImpactResult
+│   │   ├── views.py                 # Toutes les vues API
+│   │   ├── urls.py                  # Routes API
+│   │   ├── seed_idemat.py           # Script de seeding Idemat 2026
+│   │   ├── ml/
+│   │   │   └── recommender.py       # Moteur KNN 4D + générateur de conseils
 │   │   └── migrations/
+│   │       ├── 0001_initial.py
+│   │       ├── 0002_scenariomaterial_is_packaging.py
+│   │       ├── 0003_scenario_product.py
+│   │       ├── 0004_user_plan.py    # Colonne plan sur User + migration eya → pro
+│   │       └── 0005_add_ced_eco_scarcity.py  # ced_mj + eco_scarcity sur les 5 tables LCA
 │   ├── config/
 │   │   ├── settings.py
 │   │   └── urls.py
-│   ├── idemat.xlsx                # Idemat 2026 source file
+│   ├── idemat.xlsx                  # Fichier source Idemat 2026
+│   ├── .env                         # Variables locales (non committé)
+│   ├── .env.example
 │   └── manage.py
-├── frontend/                      # React project
+├── frontend/
 │   ├── public/
 │   │   ├── index.html
 │   │   └── Logo.png
 │   └── src/
-│       ├── components/
-│       │   └── shared/
-│       │       ├── Header.jsx / Header.css
-│       │       └── Sidebar.jsx / Sidebar.css
+│       ├── components/shared/
+│       │   ├── Header.jsx / .css    # Navbar fixe avec dropdown utilisateur
+│       │   └── Sidebar.jsx / .css   # Sidebar collapsible
 │       ├── pages/
-│       │   ├── LandingPage/
-│       │   ├── Login/
-│       │   ├── Signup/
-│       │   └── ProductDescription/
-│       ├── App.js
-│       └── App.css
+│       │   ├── Landingpage.jsx / .css
+│       │   ├── Login.jsx / .css
+│       │   ├── Signup.jsx / .css
+│       │   ├── Products.jsx / .css
+│       │   ├── ProductDescription.jsx / .css  # Outil ACV principal
+│       │   ├── Dashboard.jsx / .css           # Tableau de bord
+│       │   ├── Pricing.jsx / .css             # Tarification
+│       │   ├── Profile.jsx / .css             # Profil utilisateur
+│       │   └── Settings.jsx / .css            # Paramètres
+│       ├── utils/
+│       │   └── planLimits.js        # Définition des plans et limites
+│       ├── App.js                   # Routing principal
+│       └── app-layout.css
 └── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+##  Démarrage rapide
 
-### Prerequisites
+### Prérequis
 
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL
-- pgAdmin (optional, for DB visualization)
+- PostgreSQL + pgAdmin
 
 ---
 
-### Backend Setup
+### Backend
 
-**1. Clone the repository**
+**1. Cloner le dépôt**
 ```bash
 git clone https://github.com/YOUR_USERNAME/EcoDesign.git
 cd EcoDesign
 ```
 
-**2. Create and activate virtual environment**
+**2. Créer et activer l'environnement virtuel**
 ```bash
 python -m venv venv
 
@@ -119,192 +137,231 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-**3. Install dependencies**
+**3. Installer les dépendances**
 ```bash
 pip install django djangorestframework psycopg2-binary django-cors-headers pandas openpyxl scikit-learn numpy python-dotenv
 ```
 
-> **ML module requirements:** `scikit-learn` and `numpy` are required for the recommendation engine (`api/ml/recommender.py`). Without them the rest of the app works normally, but the `GET /api/scenarios/<id>/recommendations/` endpoint will return a 500 error.
+**4. Configurer la base de données**
 
-**4. Configure the database**
-
-Create a PostgreSQL database in pgAdmin (name it `ecodesign`), then create your local environment file:
+Créer une base PostgreSQL nommée `ecodesign` dans pgAdmin, puis :
 
 ```bash
 cd config
 cp .env.example .env
 ```
 
-Open `config/.env` and fill in **your own** credentials:
+Remplir `config/.env` avec vos propres valeurs :
 
 ```env
-SECRET_KEY=django-insecure-*hez$*orlnfxw3%pk+hb@+n(7tw8r9jr4cwli$(31vi3ss3^$l
-
+SECRET_KEY=votre_cle_secrete_django
 DB_NAME=ecodesign
 DB_USER=postgres
-DB_PASSWORD=your_password_here
+DB_PASSWORD=votre_mot_de_passe
 DB_HOST=localhost
 DB_PORT=5432
 ```
 
-> ⚠️ `.env` is listed in `.gitignore` and is **never committed**. Each developer keeps their own local copy with their own password. `settings.py` reads these values automatically via `python-dotenv`.
+> `.env` est dans `.gitignore` et n'est **jamais commité**.
 
-**5. Run migrations**
+**5. Appliquer les migrations**
 ```bash
-cd config
 python manage.py migrate
 ```
 
-**6. Seed the Idemat database**
+Les migrations incluent :
+- `0004_user_plan` — ajoute la colonne `plan` sur `User` (défaut `free`) et passe le compte `eya` en `pro`
+- `0005_add_ced_eco_scarcity` — ajoute `ced_mj` et `eco_scarcity` sur les 5 tables LCA
 
-Place `idemat.xlsx` in the `config/` folder, then run:
+**6. Seeder la base Idemat**
+
+Placer `idemat.xlsx` dans le dossier `config/`, puis :
 ```bash
 python manage.py shell -c "exec(open('api/seed_idemat.py').read())"
 ```
 
-**7. Start the backend server**
+Le script lit les colonnes suivantes de la feuille `Idemat2026` :
+
+| Colonne | Index | Champ DB         |
+|---------|-------|------------------|
+| eco-costs total | 6 | `eco_cost` |
+| carbon kgCO2e | 13 | `carbon_kg` |
+| eco-costs resource scarcity | 10 | `eco_scarcity` |
+| CED (Total) MJ | 16 | `ced_mj` |
+
+> Le script utilise `update_or_create` — relancer le seeding met à jour les entrées existantes sans dupliquer.
+
+**7. Démarrer le serveur**
 ```bash
 python manage.py runserver
 ```
 
-Backend runs at → `http://localhost:8000`
+Backend → `http://localhost:8000`
 
 ---
 
-### Frontend Setup
+### Frontend
 
-**1. Navigate to the frontend folder**
+**1. Installer les dépendances**
 ```bash
 cd frontend
-```
-
-**2. Install dependencies**
-```bash
 npm install
 ```
 
-> `lucide-react` is included in `package.json` and installed automatically. It provides the SVG icon set used throughout the UI (phase icons, action buttons, etc.).
-
-**3. Start the React development server**
+**2. Démarrer le serveur de développement**
 ```bash
 npm start
 ```
 
-Frontend runs at → `http://localhost:3000`
+Frontend → `http://localhost:3000`
 
 ---
 
-## 🌱 Database Seeding
+##  Seeding de la base de données
 
-The `seed_idemat.py` script reads the **Idemat 2026** Excel file and populates 5 tables:
+Le script `seed_idemat.py` peuple 5 tables à partir du fichier Excel Idemat 2026 :
 
-| Model       | Category in Idemat         | Count    |
-|-------------|----------------------------|----------|
-| Material    | Materials, Food, etc.      | ~1,850   |
-| Energy      | Energy, electricity, heat  | ~198     |
-| Transport   | Transport (all modes)      | ~87      |
-| Production  | Processing                 | ~134     |
-| EndOfLife   | Waste treatment            | ~119     |
-
-Each record stores: `name`, `short_name`, `subtype`, `eco_cost` (€/unit), `carbon_kg` (kgCO₂/unit), `unit`.
+| Modèle      | Catégorie Idemat              | ~Entrées | Champs supplémentaires     |
+|-------------|-------------------------------|----------|----------------------------|
+| Material    | Materials, Food, etc.         | 1 566    | `ced_mj`, `eco_scarcity`   |
+| Energy      | Energy, electricity, heat     | 394      | `ced_mj`, `eco_scarcity`   |
+| Transport   | Transport (all modes)         | 52       | `ced_mj`, `eco_scarcity`   |
+| Production  | Processing                    | 83       | `ced_mj`, `eco_scarcity`   |
+| EndOfLife   | Waste treatment               | 293      | `ced_mj`, `eco_scarcity`   |
 
 ---
 
-## 🔐 Environment Variables
-
-For production, create a `.env` file in `config/`:
+##  Variables d'environnement
 
 ```env
-SECRET_KEY=your_django_secret_key
-DEBUG=False
-DATABASE_NAME=ecodesign
-DATABASE_USER=postgres
-DATABASE_PASSWORD=your_password
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-ALLOWED_HOSTS=localhost,127.0.0.1
-CORS_ALLOWED_ORIGINS=http://localhost:3000
+SECRET_KEY=votre_cle_secrete_django
+DB_NAME=ecodesign
+DB_USER=postgres
+DB_PASSWORD=votre_mot_de_passe
+DB_HOST=localhost
+DB_PORT=5432
 ```
 
 ---
 
-## 📡 API Endpoints
+##  Plans & restrictions
+
+Les plans sont stockés dans la colonne `plan` du modèle `User` (valeurs : `free`, `pro`, `enterprise`).
+
+| Fonctionnalité              | Gratuit | Pro | Entreprise |
+|-----------------------------|---------|-----|------------|
+| Produits                    | 3 max   | ∞   | ∞          |
+| Scénarios par produit       | 2 max   | ∞   | ∞          |
+| Base Idemat complète        | ✓       | ✓   | ✓          |
+| Calcul éco-coûts & CO₂      | ✓       | ✓   | ✓          |
+| Recommandations intelligentes | ✗     | ✓   | ✓          |
+| Export de rapports          | ✗       | ✓   | ✓          |
+
+**Application des restrictions :**
+- **Frontend** — `src/utils/planLimits.js` lit `user.plan` depuis `localStorage` (défini à la connexion) et bloque les actions avant l'appel API
+- **Backend** — `PLAN_LIMITS` dans `views.py` contient un flag explicite `recommendations` par plan. `get_plan_limits(request)` lit `request.session['user_plan']` (défini à la connexion depuis la DB) et retourne les limites correspondantes. Les endpoints vérifient ces limites et retournent HTTP 403 si dépassées.
+
+**Compte de démonstration Pro :**
+Le compte `eya` est automatiquement passé en plan `pro` par la migration `0004_user_plan`.
+
+---
+
+##  API Endpoints
 
 ### Auth
-| Method | Endpoint           | Description         |
-|--------|--------------------|---------------------|
-| POST   | `/api/register/`   | Create account      |
-| POST   | `/api/login/`      | Login               |
-| POST   | `/api/logout/`     | Logout              |
-| GET    | `/api/me/`         | Current user info   |
+| Méthode | Endpoint           | Description              |
+|---------|--------------------|--------------------------|
+| POST    | `/api/register/`   | Créer un compte          |
+| POST    | `/api/login/`      | Connexion (retourne `plan`) |
+| POST    | `/api/logout/`     | Déconnexion              |
+| GET     | `/api/me/`         | Utilisateur courant + plan |
 
-### Products
-| Method | Endpoint                    | Description          |
-|--------|-----------------------------|----------------------|
-| GET    | `/api/products/`            | List user's products |
-| POST   | `/api/products/`            | Create product + default scenario |
-| GET    | `/api/products/<id>/`       | Get product          |
-| PUT    | `/api/products/<id>/`       | Update product       |
-| DELETE | `/api/products/<id>/`       | Delete product + scenario |
+### Utilisateur
+| Méthode | Endpoint                          | Description                        |
+|---------|-----------------------------------|------------------------------------|
+| PUT     | `/api/users/<id>/`                | Modifier le nom                    |
+| PUT     | `/api/users/<id>/password/`       | Changer le mot de passe            |
+| DELETE  | `/api/users/<id>/delete/`         | Supprimer le compte                |
 
-### Scenarios
-| Method | Endpoint                                      | Description                          |
-|--------|-----------------------------------------------|--------------------------------------|
-| GET    | `/api/products/<id>/scenarios/`               | List scenarios for product           |
-| POST   | `/api/products/<id>/scenarios/`               | Create new scenario                  |
-| GET    | `/api/products/<id>/compare/`                 | Compare all calculated scenarios     |
-| GET    | `/api/scenarios/<id>/`                        | Get scenario entries                 |
-| DELETE | `/api/scenarios/<id>/`                        | Delete scenario + all entries        |
-| POST   | `/api/scenarios/<id>/save/`                   | Save entries + calculate impact      |
-| GET    | `/api/scenarios/<id>/result/`                 | Get stored impact result             |
-| GET    | `/api/scenarios/<id>/recommendations/`        | Get ML recommendations (KNN)         |
+### Produits
+| Méthode | Endpoint                    | Description                        |
+|---------|-----------------------------|------------------------------------|
+| GET     | `/api/products/`            | Liste des produits de l'utilisateur |
+| POST    | `/api/products/`            | Créer produit + scénario par défaut (vérifie limite plan) |
+| GET     | `/api/products/<id>/`       | Détail produit                     |
+| PUT     | `/api/products/<id>/`       | Modifier produit                   |
+| DELETE  | `/api/products/<id>/`       | Supprimer produit + scénarios      |
 
-### Reference Data
-| Method | Endpoint                              | Description                  |
-|--------|---------------------------------------|------------------------------|
-| GET    | `/api/materials/subtypes/`            | Material categories          |
-| GET    | `/api/materials/by-subtype/?subtype=` | Materials by category        |
-| GET    | `/api/energy/subtypes/`               | Energy categories            |
-| GET    | `/api/energy/by-subtype/?subtype=`    | Energies by category         |
-| GET    | `/api/transport/subtypes/`            | Transport categories         |
-| GET    | `/api/transport/by-subtype/?subtype=` | Transports by category       |
+### Scénarios
+| Méthode | Endpoint                                   | Description                              |
+|---------|--------------------------------------------|------------------------------------------|
+| GET     | `/api/products/<id>/scenarios/`            | Liste des scénarios                      |
+| POST    | `/api/products/<id>/scenarios/`            | Créer scénario (vérifie limite plan)     |
+| GET     | `/api/products/<id>/compare/`              | Comparer tous les scénarios calculés     |
+| GET     | `/api/scenarios/<id>/`                     | Entrées du scénario                      |
+| PUT     | `/api/scenarios/<id>/`                     | Renommer scénario                        |
+| DELETE  | `/api/scenarios/<id>/`                     | Supprimer scénario                       |
+| POST    | `/api/scenarios/<id>/save/`                | Sauvegarder + calculer l'impact          |
+| GET     | `/api/scenarios/<id>/result/`              | Résultat d'impact stocké                 |
+| GET     | `/api/scenarios/<id>/recommendations/`     | Recommandations ML KNN (plan Pro requis, vérifié via flag `recommendations` en session) |
+
+### Données de référence
+| Méthode | Endpoint                                | Description                  |
+|---------|-----------------------------------------|------------------------------|
+| GET     | `/api/materials/subtypes/`              | Catégories de matériaux      |
+| GET     | `/api/materials/by-subtype/?subtype=`   | Matériaux par catégorie      |
+| GET     | `/api/energy/subtypes/`                 | Catégories d'énergie         |
+| GET     | `/api/energy/by-subtype/?subtype=`      | Énergies par catégorie       |
+| GET     | `/api/transport/subtypes/`              | Catégories de transport      |
+| GET     | `/api/transport/by-subtype/?subtype=`   | Transports par catégorie     |
+| GET     | `/api/packaging/subtypes/`              | Catégories de packaging      |
+| GET     | `/api/packaging/by-subtype/?subtype=`   | Matériaux de packaging       |
+| GET     | `/api/production/subtypes/`             | Catégories de production     |
+| GET     | `/api/production/by-subtype/?subtype=`  | Procédés de production       |
+| GET     | `/api/end-of-life/subtypes/`            | Catégories de fin de vie     |
+| GET     | `/api/end-of-life/by-subtype/?subtype=` | Traitements de fin de vie    |
 
 ---
+## Module ML — Recommandations
 
-## 🤖 Module ML — Recommandations
+### Architecture
 
-### Comment ça marche
+Le module `api/ml/recommender.py` analyse chaque scénario calculé et génère des suggestions d'amélioration phase par phase via l'algorithme **K-Nearest Neighbours (KNN)** de scikit-learn dans un **espace de features 4D**.
 
-Le module `api/ml/recommender.py` analyse chaque scénario calculé et génère des suggestions d'amélioration phase par phase en utilisant l'algorithme **K-Nearest Neighbours (KNN)** de scikit-learn.
+### Espace de features 4D
 
-**Algorithme :**
-1. Pour chaque item utilisé dans le scénario (matériau, énergie, transport, etc.) l'engine récupère tous les candidats de la même catégorie (`subtype`).
-2. Il filtre les candidats ayant une empreinte carbone **strictement inférieure** à l'item actuel.
-3. Il normalise les features `(eco_cost, carbon_kg)` avec `MinMaxScaler` et applique KNN (distance euclidienne) pour trouver les `k=3` alternatives les plus **proches financièrement** parmi celles qui émettent moins.
-4. Pour chaque substitution, l'économie potentielle en kg CO₂ et en € est calculée.
-5. Les résultats sont dédupliqués et triés par économie CO₂ décroissante.
-6. Un **conseil** en français est généré automatiquement pour chaque suggestion.
+| Dimension      | Description                                      | Rôle                                    |
+|----------------|--------------------------------------------------|-----------------------------------------|
+| `eco_cost`     | Éco-coût total (€/unité)                         | Impact environnemental global           |
+| `carbon_kg`    | Empreinte carbone (kgCO₂e/unité)                 | Critère Pareto principal                |
+| `ced_mj`       | Demande cumulée en énergie (MJ/unité)            | Proxy d'intensité de fabrication        |
+| `eco_scarcity` | Éco-coût de rareté des ressources (€/unité)      | Proxy de criticité / irremplaçabilité   |
 
-### Prérequis spécifiques
+L'ajout de `ced_mj` et `eco_scarcity` empêche le moteur de recommander un matériau bas de gamme comme substitut d'un matériau haute performance uniquement parce que leurs valeurs carbone sont proches.
 
-```bash
-pip install scikit-learn numpy
-```
+### Algorithme
 
-Vérifier l'installation :
-```bash
-python -c "import sklearn, numpy; print('sklearn', sklearn.__version__, '| numpy', numpy.__version__)"
-```
+1. Pour chaque item du scénario, récupérer tous les candidats de la même catégorie (`subtype`)
+2. **Filtre Pareto** : ne garder que les candidats avec `carbon_kg` strictement inférieur
+3. **Normalisation** : `MinMaxScaler` sur le pool local (candidats + référence)
+4. **KNN** : distance euclidienne, `k=3`, algorithme brute force
+5. Calculer les économies CO₂ et éco-coût pour chaque substitution
+6. Dédupliquer : garder les `top_n=3` meilleures alternatives par `(phase, item)`
+7. Trier par économie CO₂ décroissante
+8. Générer un **conseil** en français pour chaque suggestion
 
-### Utilisation
+### Phases analysées
 
-Le module est appelé automatiquement via l'endpoint REST :
+| Phase        | Pool de candidats                    |
+|--------------|--------------------------------------|
+| `materiaux`  | Même `subtype` (matériaux réguliers + packaging) |
+| `energie`    | Pool complet (changement de source valide) |
+| `transport`  | Pool complet                         |
+| `production` | Même `subtype`, fallback pool complet |
+| `fin_de_vie` | Pool complet                         |
 
-```
-GET /api/scenarios/<scenario_id>/recommendations/
-```
+### Exemple de réponse
 
-**Exemple de réponse :**
 ```json
 [
   {
@@ -319,27 +376,16 @@ GET /api/scenarios/<scenario_id>/recommendations/
     "improvement_pct": 11.7,
     "quantity": 4.0,
     "unit": "kg",
-    "conseil": "Remplacez « BR (butadiene rubber) » par « EPDM … » (4.0 kg). Ce changement réduit votre empreinte carbone de 1.39 kg CO₂ (−11.7%)."
+    "conseil": "Remplacez « BR (butadiene rubber) » par « EPDM … » (4.0 kg). Ce changement réduit votre empreinte carbone de 1.39 kg CO₂ (−11.7%). Cela représente également une économie d'éco-coût de €0.42."
   }
 ]
 ```
 
-### Depuis le frontend
+### Accès
 
-Dans la page **ProductDescription**, après avoir calculé un scénario :
-1. La carte **Recommandations IA** apparaît automatiquement sous les résultats.
-2. Cliquer sur **🔍 Voir les recommandations** déclenche l'analyse.
-3. Chaque suggestion affiche : phase concernée, item actuel → alternative, économie CO₂/€ et le **conseil** en langage naturel.
-4. Le bouton devient **🔄 Réanalyser** pour relancer l'analyse après modification du scénario.
-
-### Extension possible
-
-| Amélioration                        | Piste                                              |
-|-------------------------------------|----------------------------------------------------|
-| Recommandations multi-objectif      | Ajouter `eco_cost` comme second critère de Pareto  |
-| Apprentissage sur historique        | Entraîner un modèle sur les scénarios existants    |
-| Score de faisabilité                | Pondérer par proximité sémantique du `subtype`     |
-| Export PDF                          | Générer un rapport avec `reportlab` ou `weasyprint`|
+- **Endpoint** : `GET /api/scenarios/<id>/recommendations/`
+- **Plan requis** : Pro ou Entreprise (HTTP 403 pour le plan Gratuit)
+- **Frontend** : carte "Recommandations IA" dans ProductDescription, visible uniquement pour les utilisateurs Pro
 
 ---
 

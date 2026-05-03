@@ -628,11 +628,6 @@ html { scroll-behavior: smooth; }
   transform: translateY(-4px);
 }
 
-.lp-feature-icon {
-  font-size: 32px;
-  margin-bottom: 16px;
-}
-
 .lp-feature-card h3 {
   font-family: 'Fraunces', serif;
   font-size: 18px;
@@ -895,4 +890,247 @@ html { scroll-behavior: smooth; }
   .lp-stats-inner { grid-template-columns: repeat(2, 1fr); }
   .lp-cta-card { padding: 48px 28px; }
   .lp-footer-inner { flex-direction: column; gap: 32px; }
+}
+
+/* ── Feature icon (SVG) ── */
+.lp-feature-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--green-light);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: var(--green-dark);
+  flex-shrink: 0;
+}
+
+.lp-feature-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ── Pricing ── */
+.lp-pricing {
+  padding: 100px 0;
+  background: var(--mist);
+}
+
+.lp-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.lp-pricing-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 2px 8px rgba(13,31,15,0.04);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.lp-pricing-card:hover {
+  box-shadow: 0 8px 32px rgba(13,31,15,0.08);
+  transform: translateY(-4px);
+}
+
+.lp-pricing-card--featured {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px var(--green), 0 8px 32px rgba(46,204,113,0.15);
+  transform: translateY(-8px);
+}
+
+.lp-pricing-card--featured:hover {
+  transform: translateY(-12px);
+}
+
+.lp-pricing-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+
+.lp-pricing-badge--green {
+  color: var(--green-dark);
+}
+
+.lp-pricing-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.lp-pricing-amount {
+  font-family: 'Fraunces', serif;
+  font-size: 38px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -1px;
+}
+
+.lp-pricing-period {
+  font-size: 14px;
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.lp-pricing-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  font-weight: 300;
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lp-pricing-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex: 1;
+}
+
+.lp-pricing-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.lp-pricing-features li svg {
+  color: var(--green-dark);
+  flex-shrink: 0;
+}
+
+.lp-pricing-disabled {
+  opacity: 0.35;
+}
+
+.lp-pricing-disabled svg {
+  color: var(--ink-soft) !important;
+}
+
+.lp-pricing-cta {
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+
+/* ── À propos ── */
+.lp-about {
+  padding: 100px 0;
+  background: var(--white);
+}
+
+.lp-about-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.lp-about-text .lp-eyebrow {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.lp-about-text h2 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1px;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+
+.lp-about-text p {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--ink-soft);
+  font-weight: 300;
+  margin-bottom: 16px;
+}
+
+.lp-about-text p strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lp-about-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.lp-about-tags span {
+  background: var(--green-light);
+  border: 1px solid var(--green);
+  color: var(--green-dark);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lp-about-card {
+  background: var(--mist);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.lp-about-stat {
+  padding: 20px 0;
+}
+
+.lp-about-stat span {
+  font-family: 'Fraunces', serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--green-dark);
+  letter-spacing: -1px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.lp-about-stat p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 400;
+  margin: 0;
+}
+
+.lp-about-divider {
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Responsive additions ── */
+@media (max-width: 1024px) {
+  .lp-pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+  .lp-pricing-card--featured { transform: none; }
+  .lp-pricing-card--featured:hover { transform: translateY(-4px); }
+  .lp-about-inner { grid-template-columns: 1fr; gap: 48px; }
 }

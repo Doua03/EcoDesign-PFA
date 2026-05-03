@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./ProductDescription.css";
+import { getPlanLimits } from "../utils/planLimits";
 import {
   Leaf,
   Truck,
@@ -59,17 +60,19 @@ const api = {
 
 /* ── Phase colors & labels ──────────────────────────── */
 const PHASE_COLORS = {
-  materiaux: "#2ecc71",
-  transport: "#fd79a8",
-  energie: "#74b9ff",
-  production: "#a29bfe",
-  fin_de_vie: "#ffeaa7",
+  materiaux:  "#5EAA28",   // brand green
+  packaging:  "#f0a050",   // warm orange
+  transport:  "#e07b8a",   // warm rose
+  energie:    "#4a90c4",   // medium blue
+  production: "#8b6fc4",   // medium purple
+  fin_de_vie: "#c4a84a",   // warm amber
 };
 
 const PHASE_LABELS = {
-  materiaux: "Matières premières",
-  transport: "Transport",
-  energie: "Énergie",
+  materiaux:  "Matières premières",
+  packaging:  "Packaging",
+  transport:  "Transport",
+  energie:    "Énergie",
   production: "Production",
   fin_de_vie: "Fin de vie",
 };
@@ -170,60 +173,90 @@ function DonutChart({ result }) {
 
 /* ── Recommendations components ─────────────────────── */
 const PHASE_ICONS = {
-  materiaux: <Layers size={13} />,
-  transport: <Truck size={13} />,
-  energie: <Zap size={13} />,
-  production: <Factory size={13} />,
-  fin_de_vie: <Recycle size={13} />,
+  materiaux: <Layers size={14} />,
+  packaging: <Layers size={14} />,
+  transport: <Truck size={14} />,
+  energie: <Zap size={14} />,
+  production: <Factory size={14} />,
+  fin_de_vie: <Recycle size={14} />,
 };
 
-function RecoCard({ rec, rank }) {
+/* One alternative row (best or secondary) */
+function AltRow({ rec, isBest }) {
   const truncate = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
   return (
-    <div className={`pd-reco-item ${rank <= 3 ? "top" : ""}`}>
-      <div className="pd-reco-rank">{rank}</div>
-      <div className="pd-reco-body">
-        <div className="pd-reco-phase">
-          <span className="pd-reco-phase-icon">
-            {PHASE_ICONS[rec.phase] || <Layers size={13} />}
-          </span>
-          <span
-            className="pd-reco-phase-label"
-            style={{ color: PHASE_COLORS[rec.phase] || "#636e72" }}
-          >
-            {rec.phase_label}
-          </span>
-          <div className="pd-reco-savings-inline">
-            <span className="pd-reco-save-co2">
-              -{rec.co2_saving.toFixed(2)} kg CO₂
-            </span>
-            <span className="pd-reco-save-pct">-{rec.improvement_pct}%</span>
-          </div>
-        </div>
-
-        {/* Conseil — natural language advice */}
-        <p className="pd-reco-conseil">{rec.conseil}</p>
-
-        <div className="pd-reco-subst">
+    <div className={`pd-reco-alt-row ${isBest ? "best" : "secondary"}`}>
+      <div className="pd-reco-alt-header">
+        <div className="pd-reco-alt-names">
           <span className="pd-reco-cur" title={rec.current_name}>
-            {truncate(rec.current_name, 42)}
+            {truncate(rec.current_name, 38)}
           </span>
           <span className="pd-reco-arrow">→</span>
-          <span className="pd-reco-alt" title={rec.alternative_name}>
-            {truncate(rec.alternative_name, 42)}
+          <span className="pd-reco-alt-name" title={rec.alternative_name}>
+            {truncate(rec.alternative_name, 38)}
           </span>
         </div>
-        <div className="pd-reco-meta">
-          <span>
-            {rec.quantity} {rec.unit}
-          </span>
-          <span>
-            {rec.current_co2.toFixed(3)} → {rec.alternative_co2.toFixed(3)} kg
-            CO₂
-          </span>
-          {rec.eco_saving > 0 && <span>-€{rec.eco_saving.toFixed(3)}</span>}
+        <div className="pd-reco-alt-savings">
+          <span className="pd-reco-save-co2">-{rec.co2_saving.toFixed(2)} kg CO₂</span>
+          <span className="pd-reco-save-pct">-{rec.improvement_pct}%</span>
+          {rec.eco_saving > 0.01 && (
+            <span className="pd-reco-save-eco">-€{rec.eco_saving.toFixed(2)}</span>
+          )}
         </div>
       </div>
+      <p className="pd-reco-conseil">{rec.conseil}</p>
+      <div className="pd-reco-meta">
+        <span>{rec.quantity} {rec.unit}</span>
+        <span>{rec.current_co2.toFixed(3)} → {rec.alternative_co2.toFixed(3)} kg CO₂</span>
+      </div>
+    </div>
+  );
+}
+
+/* One card per (phase, current_name) group */
+function RecoGroupCard({ phase, phaseLabel, currentName, alternatives }) {
+  const [expanded, setExpanded] = useState(false);
+  const best = alternatives[0];
+  const others = alternatives.slice(1);
+
+  return (
+    <div className="pd-reco-group">
+      {/* Group header */}
+      <div className="pd-reco-group-header">
+        <div className="pd-reco-group-phase">
+          <span className="pd-reco-phase-icon"
+            style={{ color: PHASE_COLORS[phase] || "#636e72" }}>
+            {PHASE_ICONS[phase] || <Layers size={14} />}
+          </span>
+          <span className="pd-reco-phase-label"
+            style={{ color: PHASE_COLORS[phase] || "#636e72" }}>
+            {phaseLabel}
+          </span>
+        </div>
+        <span className="pd-reco-group-item-name" title={currentName}>
+          {currentName.length > 45 ? currentName.slice(0, 44) + "…" : currentName}
+        </span>
+      </div>
+
+      {/* Best alternative — always visible */}
+      <AltRow rec={best} isBest={true} />
+
+      {/* Other alternatives — collapsible */}
+      {others.length > 0 && (
+        <>
+          {expanded && others.map((r, i) => (
+            <AltRow key={i} rec={r} isBest={false} />
+          ))}
+          <button
+            className="pd-reco-toggle-btn"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded
+              ? "▲ Masquer les autres options"
+              : `▼ Voir ${others.length} autre${others.length > 1 ? "s" : ""} option${others.length > 1 ? "s" : ""}`}
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -233,57 +266,64 @@ function RecommendationsPanel({ recommendations, loading }) {
     return (
       <div className="pd-reco-state">
         <div className="pd-reco-spinner" />
-        <p>Analyse IA en cours…</p>
+        <p>Analyse en cours…</p>
       </div>
     );
   }
   if (recommendations.length === 0) {
     return (
       <div className="pd-reco-state">
-        <CheckCircle size={32} color="#2ecc71" strokeWidth={1.5} />
-        <p>
-          Aucune amélioration significative détectée — votre scénario est déjà
-          bien optimisé !
-        </p>
+        <CheckCircle size={32} color="#5EAA28" strokeWidth={1.5} />
+        <p>Aucune amélioration significative détectée — votre scénario est déjà bien optimisé !</p>
       </div>
     );
   }
 
-  const totalSavingCO2 = recommendations.reduce((s, r) => s + r.co2_saving, 0);
-  const totalSavingEco = recommendations.reduce((s, r) => s + r.eco_saving, 0);
+  // Group by (phase, current_name) — preserving order (best CO₂ saving first)
+  const groups = [];
+  const seen = new Map();
+  for (const r of recommendations) {
+    const key = `${r.phase}||${r.current_name}`;
+    if (!seen.has(key)) {
+      seen.set(key, groups.length);
+      groups.push({
+        phase: r.phase,
+        phaseLabel: r.phase_label,
+        currentName: r.current_name,
+        alternatives: [r],
+      });
+    } else {
+      groups[seen.get(key)].alternatives.push(r);
+    }
+  }
+
+  const totalSavingCO2 = groups.reduce((s, g) => s + g.alternatives[0].co2_saving, 0);
+  const totalSavingEco = groups.reduce((s, g) => s + g.alternatives[0].eco_saving, 0);
 
   return (
     <div className="pd-reco-content">
+      {/* Summary bar */}
       <div className="pd-reco-summary">
         <div className="pd-reco-summary-item">
-          <span className="pd-reco-summary-val">
-            -{totalSavingCO2.toFixed(2)} kg CO₂
-          </span>
-          <span className="pd-reco-summary-lbl">
-            Potentiel total de réduction
-          </span>
+          <span className="pd-reco-summary-val">-{totalSavingCO2.toFixed(2)} kg CO₂</span>
+          <span className="pd-reco-summary-lbl">Potentiel de réduction</span>
         </div>
         <div className="pd-reco-summary-item">
-          <span className="pd-reco-summary-val">
-            {recommendations.length} suggestion
-            {recommendations.length > 1 ? "s" : ""}
-          </span>
+          <span className="pd-reco-summary-val">{groups.length} suggestion{groups.length > 1 ? "s" : ""}</span>
           <span className="pd-reco-summary-lbl">Améliorations identifiées</span>
         </div>
-        {totalSavingEco > 0 && (
+        {totalSavingEco > 0.01 && (
           <div className="pd-reco-summary-item">
-            <span className="pd-reco-summary-val">
-              -€{totalSavingEco.toFixed(2)}
-            </span>
-            <span className="pd-reco-summary-lbl">
-              Économie éco-coût possible
-            </span>
+            <span className="pd-reco-summary-val">-€{totalSavingEco.toFixed(2)}</span>
+            <span className="pd-reco-summary-lbl">Économie éco-coût</span>
           </div>
         )}
       </div>
-      <div className="pd-reco-list">
-        {recommendations.map((r, i) => (
-          <RecoCard key={i} rec={r} rank={i + 1} />
+
+      {/* One card per item */}
+      <div className="pd-reco-groups">
+        {groups.map((g, i) => (
+          <RecoGroupCard key={i} {...g} />
         ))}
       </div>
     </div>
@@ -301,7 +341,7 @@ function BestBadge({ data }) {
   return (
     <div className="pd-cmp-best">
       <div className="pd-cmp-best-item">
-        <Leaf size={22} color="#1a9e52" strokeWidth={1.5} />
+        <Leaf size={22} color="#5EAA28" strokeWidth={1.5} />
         <div>
           <div className="pd-cmp-best-label">Meilleure empreinte carbone</div>
           <div className="pd-cmp-best-name">{bestCarbon.name}</div>
@@ -311,7 +351,7 @@ function BestBadge({ data }) {
         </div>
       </div>
       <div className="pd-cmp-best-item">
-        <TrendingDown size={22} color="#1a9e52" strokeWidth={1.5} />
+        <TrendingDown size={22} color="#5EAA28" strokeWidth={1.5} />
         <div>
           <div className="pd-cmp-best-label">Meilleur éco-coût</div>
           <div className="pd-cmp-best-name">{bestEco.name}</div>
@@ -1033,6 +1073,7 @@ function dbEntriesToForm(entries) {
 /* ── Main component ─────────────────────────────────── */
 export default function ProductDescription() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [activeProduct, setActiveProduct] = useState(null);
   const [scenarios, setScenarios] = useState([]);
@@ -1045,6 +1086,7 @@ export default function ProductDescription() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
   const [form, setForm] = useState(emptyForm());
+  const [limitError, setLimitError] = useState("");
 
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
@@ -1200,9 +1242,16 @@ export default function ProductDescription() {
 
   /* ── Product CRUD ── */
   const handleCreateProduct = (p) => {
+    const limits = getPlanLimits();
+    if (products.length >= limits.maxProducts) {
+      setLimitError(`Vous avez atteint la limite de ${limits.maxProducts} produits du plan Gratuit.`);
+      setShowCreateProduct(false);
+      return;
+    }
     setProducts((prev) => [p, ...prev]);
     setActiveProduct(p);
     setShowCreateProduct(false);
+    setLimitError("");
   };
   const handleEditProduct = (p) => {
     setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)));
@@ -1223,18 +1272,25 @@ export default function ProductDescription() {
       setScenarioAddError("Le nom du scénario est requis.");
       return;
     }
+    const limits = getPlanLimits();
+    if (scenarios.length >= limits.maxScenariosPerProduct) {
+      setLimitError(`Vous avez atteint la limite de ${limits.maxScenariosPerProduct} scénarios par produit du plan Gratuit.`);
+      if (showCreateScenario) setShowCreateScenario(false);
+      return;
+    }
     setScenarioAddError("");
-    const s = await api.post(`/api/products/${activeProduct.id}/scenarios/`, {
-      name,
-    });
+    setLimitError("");
+    const s = await api.post(`/api/products/${activeProduct.id}/scenarios/`, { name });
+    if (s.error === "plan_limit") {
+      setLimitError(s.detail);
+      return;
+    }
     if (!s.error) {
       setScenarios((prev) => [...prev, s]);
       setActiveScenario(s);
       setScenarioNameInput("");
     }
-    if (showCreateScenario) {
-      setShowCreateScenario(false);
-    }
+    if (showCreateScenario) setShowCreateScenario(false);
   };
 
   const handleOpenEditScenario = (scenario) => {
@@ -1296,6 +1352,22 @@ export default function ProductDescription() {
   /* ── Render ── */
   return (
     <div className="pd-page">
+      {/* ── Plan limit banner ── */}
+      {limitError && (
+        <div className="pd-limit-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round" width="15" height="15">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>{limitError}</span>
+          <button className="pd-limit-upgrade" onClick={() => navigate("/pricing")}>
+            Passer au Pro →
+          </button>
+          <button className="pd-limit-close" onClick={() => setLimitError("")}>×</button>
+        </div>
+      )}
+
       {/* ── Product tabs ── */}
       <div className="pd-tabs-bar">
         <div className="pd-tabs">
@@ -1330,7 +1402,14 @@ export default function ProductDescription() {
           ))}
           <button
             className="pd-tab-add"
-            onClick={() => setShowCreateProduct(true)}
+            onClick={() => {
+              const limits = getPlanLimits();
+              if (products.length >= limits.maxProducts) {
+                setLimitError(`Vous avez atteint la limite de ${limits.maxProducts} produits du plan Gratuit.`);
+                return;
+              }
+              setShowCreateProduct(true);
+            }}
           >
             + Nouveau produit
           </button>
@@ -1578,38 +1657,60 @@ export default function ProductDescription() {
 
             {/* ══ Recommendations panel ══ */}
             {impactResult && (
-              <div className="pd-reco-card">
-                <div className="pd-reco-header">
-                  <div>
-                    <h3 className="pd-reco-title">Recommandations IA</h3>
-                    <p className="pd-reco-subtitle">
-                      Analyse KNN sur <strong>{activeScenario?.name}</strong> —
-                      suggestions d'optimisation par phase
-                    </p>
+              getPlanLimits().recommendations ? (
+                <div className="pd-reco-card">
+                  <div className="pd-reco-header">
+                    <div>
+                      <h3 className="pd-reco-title">Recommandations IA</h3>
+                      <p className="pd-reco-subtitle">
+                        Analyse KNN sur <strong>{activeScenario?.name}</strong> —
+                        suggestions d'optimisation par phase
+                      </p>
+                    </div>
+                    {recoLoading ? (
+                      <div className="pd-reco-spinner-inline" />
+                    ) : (
+                      <button className="pd-reco-btn" onClick={handleLoadReco}>
+                        {recommendations.length > 0 ? (
+                          <>
+                            <RefreshCw size={13} /> Réanalyser
+                          </>
+                        ) : (
+                          <>
+                            <Search size={13} /> Voir les recommandations
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
-                  {recoLoading ? (
-                    <div className="pd-reco-spinner-inline" />
-                  ) : (
-                    <button className="pd-reco-btn" onClick={handleLoadReco}>
-                      {recommendations.length > 0 ? (
-                        <>
-                          <RefreshCw size={13} /> Réanalyser
-                        </>
-                      ) : (
-                        <>
-                          <Search size={13} /> Voir les recommandations
-                        </>
-                      )}
-                    </button>
+                  {(recoLoading || recommendations.length > 0) && (
+                    <RecommendationsPanel
+                      recommendations={recommendations}
+                      loading={recoLoading}
+                    />
                   )}
                 </div>
-                {(recoLoading || recommendations.length > 0) && (
-                  <RecommendationsPanel
-                    recommendations={recommendations}
-                    loading={recoLoading}
-                  />
-                )}
-              </div>
+              ) : (
+                <div className="pd-reco-card pd-reco-locked">
+                  <div className="pd-reco-locked-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+                      width="28" height="28">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </div>
+                  <div className="pd-reco-locked-body">
+                    <h3 className="pd-reco-title">Recommandations IA</h3>
+                    <p className="pd-reco-subtitle">
+                      Les suggestions d'optimisation par phase sont réservées au plan Pro.
+                    </p>
+                    <button className="pd-reco-upgrade-btn" onClick={() => navigate("/pricing")}>
+                      Passer au Pro →
+                    </button>
+                  </div>
+                </div>
+              )
             )}
             {/* END recommendations panel */}
 

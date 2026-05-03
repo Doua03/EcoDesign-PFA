@@ -67,6 +67,7 @@ def login(request):
             request.session['user_id']   = user.id
             request.session['user_name'] = user.name
             request.session['user_email'] = user.email
+            request.session['user_plan'] = user.plan
 
             return JsonResponse({
                 'message': 'Login successful',
@@ -74,6 +75,7 @@ def login(request):
                     'id':    user.id,
                     'name':  user.name,
                     'email': user.email,
+                    'plan':  user.plan,
                 }
             }, status=200)
 
@@ -100,6 +102,7 @@ def me(request):
         'id':    request.session.get('user_id'),
         'name':  request.session.get('user_name'),
         'email': request.session.get('user_email'),
+        'plan':  request.session.get('user_plan', 'free'),
     })
 
 def material_subtypes(request):
@@ -263,6 +266,18 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Product, Scenario, User
 
 
+PLAN_LIMITS = {
+    'free':       {'max_products': 3,    'max_scenarios': 2,    'recommendations': False},
+    'pro':        {'max_products': None, 'max_scenarios': None, 'recommendations': True},
+    'enterprise': {'max_products': None, 'max_scenarios': None, 'recommendations': True},
+}
+
+def get_plan_limits(request):
+    """Read the user's plan from the session (set at login from the DB)."""
+    plan = request.session.get('user_plan', 'free')
+    return PLAN_LIMITS.get(plan, PLAN_LIMITS['free'])
+
+
 def get_user(request):
     """Helper: get user from session."""
     user_id = request.session.get('user_id')
@@ -272,6 +287,66 @@ def get_user(request):
         return User.objects.get(id=user_id)
     except User.DoesNotExist:
         return None
+
+
+@csrf_exempt
+def user_update(request, user_id):
+    """PUT /api/users/<id>/ — update name."""
+    user = get_user(request)
+    if not user or user.id != user_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    if request.method != 'PUT':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        name = data.get('name', '').strip()
+        if not name:
+            return JsonResponse({'error': 'Name is required'}, status=400)
+        user.name = name
+        user.save()
+        request.session['user_name'] = name
+        return JsonResponse({'id': user.id, 'name': user.name, 'email': user.email, 'plan': user.plan})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def user_password(request, user_id):
+    """PUT /api/users/<id>/password/ — change password."""
+    user = get_user(request)
+    if not user or user.id != user_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    if request.method != 'PUT':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        current  = data.get('current_password', '')
+        new_pass = data.get('new_password', '')
+        if not user.check_password(current):
+            return JsonResponse({'error': 'Mot de passe actuel incorrect.'}, status=400)
+        if len(new_pass) < 6:
+            return JsonResponse({'error': 'Le nouveau mot de passe doit contenir au moins 6 caractères.'}, status=400)
+        user.set_password(new_pass)
+        user.save()
+        return JsonResponse({'message': 'Password updated'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def user_delete(request, user_id):
+    """DELETE /api/users/<id>/ — delete account."""
+    user = get_user(request)
+    if not user or user.id != user_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    if request.method != 'DELETE':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        request.session.flush()
+        user.delete()
+        return JsonResponse({'message': 'Account deleted'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def product_to_dict(product):
@@ -312,7 +387,17 @@ def product_list_create(request):
 
             if not name:
                 return JsonResponse({'error': 'Product name is required'}, status=400)
-            
+
+            # ── Plan limit: max products ──
+            limits = get_plan_limits(request)
+            if limits['max_products'] is not None:
+                current_count = Product.objects.filter(user=user).count()
+                if current_count >= limits['max_products']:
+                    return JsonResponse(
+                        {'error': 'plan_limit', 'detail': f"Vous avez atteint la limite de {limits['max_products']} produits de votre plan."},
+                        status=403
+                    )
+
             scenario = Scenario.objects.create(name=scenario_name)
 
             product = Product.objects.create(
@@ -472,6 +557,18 @@ def scenario_list_create(request, product_id):
             if not name:
                 return JsonResponse({'error': 'Scenario name is required'}, status=400)
 
+            # ── Plan limit: max scenarios per product ──
+            limits = get_plan_limits(request)
+            if limits['max_scenarios'] is not None:
+                linked_ids = set(Scenario.objects.filter(product=product).values_list('id', flat=True))
+                if product.default_scenario_id:
+                    linked_ids.add(product.default_scenario_id)
+                if len(linked_ids) >= limits['max_scenarios']:
+                    return JsonResponse(
+                        {'error': 'plan_limit', 'detail': f"Vous avez atteint la limite de {limits['max_scenarios']} scénarios par produit de votre plan."},
+                        status=403
+                    )
+
             scenario = Scenario.objects.create(name=name, product=product)
             return JsonResponse(scenario_to_dict(scenario, product), status=201)
 
@@ -570,6 +667,14 @@ def scenario_recommendations(request, scenario_id):
     if not user:
         return JsonResponse({'error': 'Not authenticated'}, status=401)
 
+    # ── Plan check: recommendations require pro or enterprise ──
+    limits = get_plan_limits(request)
+    if not limits.get('recommendations', False):
+        return JsonResponse(
+            {'error': 'plan_limit', 'detail': 'Les recommandations sont réservées au plan Pro.'},
+            status=403
+        )
+
     try:
         scenario = Scenario.objects.get(id=scenario_id)
     except Scenario.DoesNotExist:
@@ -613,6 +718,7 @@ def scenario_save(request, scenario_id):
         ScenarioEndOfLife.objects.filter(scenario=scenario).delete()
  
         mat_eco   = mat_co2   = 0.0
+        pack_eco  = pack_co2  = 0.0
         trans_eco = trans_co2 = 0.0
         ener_eco  = ener_co2  = 0.0
         prod_eco  = prod_co2  = 0.0
@@ -622,15 +728,19 @@ def scenario_save(request, scenario_id):
         for item in data.get('materials', []):
             mat = Material.objects.get(id=item['material_id'])
             qty = float(item.get('quantity', 0))
-            is_packaging = item.get('is_packaging', False)   # ← read the flag
+            is_packaging = item.get('is_packaging', False)
             ScenarioMaterial.objects.create(
                 scenario=scenario,
                 material=mat,
                 quantity=qty,
-                is_packaging=is_packaging,                   # ← save the flag
+                is_packaging=is_packaging,
             )
-            mat_eco += mat.eco_cost  * qty
-            mat_co2 += mat.carbon_kg * qty
+            if is_packaging:
+                pack_eco += mat.eco_cost  * qty
+                pack_co2 += mat.carbon_kg * qty
+            else:
+                mat_eco += mat.eco_cost  * qty
+                mat_co2 += mat.carbon_kg * qty
  
         # ── 3. Energies ──
         for item in data.get('energies', []):
@@ -664,8 +774,8 @@ def scenario_save(request, scenario_id):
             eol_eco += eol.eco_cost  * qty
             eol_co2 += eol.carbon_kg * qty
  
-        total_eco_cost  = mat_eco + trans_eco + ener_eco + prod_eco + eol_eco
-        total_carbon_kg = mat_co2 + trans_co2 + ener_co2 + prod_co2 + eol_co2
+        total_eco_cost  = mat_eco + pack_eco + trans_eco + ener_eco + prod_eco + eol_eco
+        total_carbon_kg = mat_co2 + pack_co2 + trans_co2 + ener_co2 + prod_co2 + eol_co2
 
         # ── 7. Save ImpactResult ──
         # Get the product directly from the scenario's product FK
@@ -690,6 +800,7 @@ def scenario_save(request, scenario_id):
             'total_carbon_kg': round(total_carbon_kg, 4),
             'breakdown': {
                 'materiaux':  round(mat_eco,   4),
+                'packaging':  round(pack_eco,  4),
                 'transport':  round(trans_eco, 4),
                 'energie':    round(ener_eco,  4),
                 'production': round(prod_eco,  4),
@@ -697,6 +808,7 @@ def scenario_save(request, scenario_id):
             },
             'carbon_breakdown': {
                 'materiaux':  round(mat_co2,   4),
+                'packaging':  round(pack_co2,  4),
                 'transport':  round(trans_co2, 4),
                 'energie':    round(ener_co2,  4),
                 'production': round(prod_co2,  4),
@@ -710,9 +822,14 @@ def scenario_save(request, scenario_id):
 
 def _compute_scenario_breakdown(scenario):
     mat_eco = mat_co2 = 0.0
+    pack_eco = pack_co2 = 0.0
     for sm in ScenarioMaterial.objects.filter(scenario=scenario).select_related('material'):
-        mat_eco += sm.material.eco_cost  * sm.quantity
-        mat_co2 += sm.material.carbon_kg * sm.quantity
+        if sm.is_packaging:
+            pack_eco += sm.material.eco_cost  * sm.quantity
+            pack_co2 += sm.material.carbon_kg * sm.quantity
+        else:
+            mat_eco += sm.material.eco_cost  * sm.quantity
+            mat_co2 += sm.material.carbon_kg * sm.quantity
 
     trans_eco = trans_co2 = 0.0
     for st in ScenarioTransport.objects.filter(scenario=scenario).select_related('transport'):
@@ -737,6 +854,7 @@ def _compute_scenario_breakdown(scenario):
     return (
         {
             'materiaux':  round(mat_eco,   4),
+            'packaging':  round(pack_eco,  4),
             'transport':  round(trans_eco, 4),
             'energie':    round(ener_eco,  4),
             'production': round(prod_eco,  4),
@@ -744,6 +862,7 @@ def _compute_scenario_breakdown(scenario):
         },
         {
             'materiaux':  round(mat_co2,   4),
+            'packaging':  round(pack_co2,  4),
             'transport':  round(trans_co2, 4),
             'energie':    round(ener_co2,  4),
             'production': round(prod_co2,  4),

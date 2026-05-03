@@ -673,3 +673,53 @@
     justify-content: flex-end;
   }
 }
+
+/* ── Plan limit banner ── */
+.products-limit-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff8ec;
+  border: 1.5px solid #f5c842;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #7a5c00;
+  font-weight: 500;
+}
+
+.products-limit-banner svg {
+  flex-shrink: 0;
+  color: #c49a00;
+}
+
+.products-limit-banner span {
+  flex: 1;
+}
+
+.products-limit-upgrade {
+  background: #5EAA28;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.products-limit-upgrade:hover { background: #4a8a20; }
+
+.products-limit-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #b2a080;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}

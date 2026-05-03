@@ -11,9 +11,9 @@
   top: 0;
   left: 0;
   right: 0;
-  padding: 0 24px; /* add horizontal padding */
-  z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  padding: 0 24px;
+  z-index: 200;
+  box-shadow: 0 1px 0 #dfe6e9;
 }
 
 /* ── Left side (logo + search) ── */
@@ -26,40 +26,6 @@
 .header-logo img {
   height: 50px; /* smaller, proportionate */
   object-fit: contain;
-}
-
-/* ── Search bar ── */
-.header-search {
-  display: flex;
-  align-items: center;
-  background: #f1f2f6;
-  border: 1px solid #dfe6e9;
-  border-radius: 25px;
-  padding: 6px 16px;
-  gap: 8px;
-  width: 350px;
-  transition: all 0.2s ease;
-}
-
-.header-search-icon {
-  display: flex;
-  align-items: center;
-  color: #636e72;
-  flex-shrink: 0;
-}
-
-.header-search input {
-  border: none;
-  background: none;
-  outline: none;
-  font-size: 14px;
-  font-family: 'Nunito', 'Segoe UI', sans-serif;
-  color: #636e72;
-  width: 100%;
-}
-
-.header-search:hover {
-  box-shadow: 0 0 5px rgba(0,0,0,0.1);
 }
 
 /* ── Right side (user info) ── */
@@ -115,10 +81,6 @@
 
 /* ── Responsive adjustments ── */
 @media (max-width: 768px) {
-  .header-search {
-    width: 200px;
-  }
-
   .header-left {
     gap: 12px;
   }
@@ -201,7 +163,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #2ecc71;
+  background: #5EAA28;
   color: #ffffff;
   font-size: 15px;
   font-weight: 700;

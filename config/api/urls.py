@@ -7,6 +7,11 @@ urlpatterns = [
     path('logout/',   views.logout,   name='logout'),
     path('me/',       views.me,       name='me'),
 
+    # ── User profile ──────────────────────────────────────────────────
+    path('users/<int:user_id>/',          views.user_update,   name='user-update'),
+    path('users/<int:user_id>/password/', views.user_password, name='user-password'),
+    path('users/<int:user_id>/delete/',   views.user_delete,   name='user-delete'),
+
     path('products/',              views.product_list_create, name='product-list-create'),
     path('products/<int:product_id>/', views.product_detail, name='product-detail'),
     
