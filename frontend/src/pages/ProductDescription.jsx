@@ -78,7 +78,7 @@ const PHASE_LABELS = {
 };
 
 /* ── Donut chart ────────────────────────────────────── */
-function DonutChart({ result }) {
+function DonutChart({ result, mode = "eco" }) {
   const r = 70,
     cx = 90,
     cy = 90,
@@ -96,34 +96,35 @@ function DonutChart({ result }) {
     );
   }
 
-  const total = result.total_eco_cost;
-  const breakdown = result.breakdown || {};
+  const isCO2 = mode === "co2";
+  const breakdown = isCO2
+    ? (result.carbon_breakdown || result.breakdown || {})
+    : (result.breakdown || {});
+  const totalValue = isCO2 ? result.total_carbon_kg : result.total_eco_cost;
+
+  const absSum = Object.values(breakdown).reduce((s, v) => s + Math.abs(v), 0);
+
   const segments = Object.entries(breakdown)
-    .filter(([_, value]) => value > 0)
+    .filter(([_, value]) => value !== 0)
     .map(([key, value]) => ({
       key,
       label: PHASE_LABELS[key],
-      color: PHASE_COLORS[key],
+      color: value < 0 ? PHASE_COLORS[key] + "88" : PHASE_COLORS[key],
       value,
-      pct: total > 0 ? (value / total) * 100 : 0,
-    }));
+      pct: absSum > 0 ? Math.max((Math.abs(value) / absSum) * 100, 1) : 0,
+      isCredit: value < 0,
+    }))
+    .filter((s) => s.pct > 0);
 
   if (segments.length === 0) {
     return (
       <div className="pd-donut-wrapper">
         <svg className="pd-donut-svg" viewBox="0 0 180 180">
-          <circle
-            cx={cx}
-            cy={cy}
-            r={r}
-            fill="none"
-            stroke="#f1f2f6"
-            strokeWidth={stroke}
-          />
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f2f6" strokeWidth={stroke} />
         </svg>
         <div className="pd-donut-center">
-          <span className="pd-donut-value">€0</span>
-          <span className="pd-donut-label">Éco-coût total</span>
+          <span className="pd-donut-value">{isCO2 ? "0 kg" : "€0"}</span>
+          <span className="pd-donut-label">{isCO2 ? "CO₂ total" : "Éco-coût total"}</span>
         </div>
       </div>
     );
@@ -134,14 +135,7 @@ function DonutChart({ result }) {
   return (
     <div className="pd-donut-wrapper">
       <svg className="pd-donut-svg" viewBox="0 0 180 180">
-        <circle
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="none"
-          stroke="#f1f2f6"
-          strokeWidth={stroke}
-        />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f2f6" strokeWidth={stroke} />
         {segments.map((s, i) => {
           const dash = (s.pct / 100) * circ;
           const gap = circ - dash;
@@ -150,9 +144,7 @@ function DonutChart({ result }) {
           return (
             <circle
               key={i}
-              cx={cx}
-              cy={cy}
-              r={r}
+              cx={cx} cy={cy} r={r}
               fill="none"
               stroke={s.color}
               strokeWidth={stroke}
@@ -164,8 +156,17 @@ function DonutChart({ result }) {
         })}
       </svg>
       <div className="pd-donut-center">
-        <span className="pd-donut-value">€{total.toFixed(2)}</span>
-        <span className="pd-donut-label">Éco-coût total</span>
+        <span className="pd-donut-value">
+          {totalValue < 0 ? "-" : ""}
+          {isCO2
+            ? `${Math.abs(totalValue).toFixed(2)} kg`
+            : `€${Math.abs(totalValue).toFixed(2)}`}
+        </span>
+        <span className="pd-donut-label">
+          {totalValue < 0
+            ? "Crédit net"
+            : isCO2 ? "CO₂ total" : "Éco-coût total"}
+        </span>
       </div>
     </div>
   );
@@ -978,6 +979,68 @@ function PackagingRow({ item, onUpdate, onRemove }) {
   );
 }
 
+function EndOfLifeRow({ item, onUpdate, onRemove }) {
+  const subtypes = useFetch("/api/end-of-life/subtypes/");
+  const entries = useFetch(
+    item.subtype
+      ? `/api/end-of-life/by-subtype/?subtype=${encodeURIComponent(item.subtype)}`
+      : "",
+  );
+  return (
+    <div className="pd-form-row">
+      <div className="pd-field">
+        <label>Catégorie</label>
+        <select
+          value={item.subtype}
+          onChange={(e) => {
+            onUpdate(item.id, "subtype", e.target.value);
+            onUpdate(item.id, "eol_id", "");
+            onUpdate(item.id, "unit", "");
+          }}
+        >
+          <option value="">-- Sélectionner --</option>
+          {subtypes.map((s, i) => (
+            <option key={i} value={s}>{s}</option>
+          ))}
+        </select>
+      </div>
+      <div className="pd-field">
+        <label>Traitement</label>
+        <select
+          value={item.eol_id}
+          disabled={!item.subtype}
+          onChange={(e) => {
+            const en = entries.find((en) => en.id === parseInt(e.target.value));
+            onUpdate(item.id, "eol_id", parseInt(e.target.value));
+            onUpdate(item.id, "unit", en?.unit || "");
+          }}
+        >
+          <option value="">-- Sélectionner --</option>
+          {entries.map((en) => (
+            <option key={en.id} value={en.id}>{en.name}</option>
+          ))}
+        </select>
+      </div>
+      <div className="pd-field field-sm">
+        <label>Quantité</label>
+        <input
+          type="number"
+          placeholder="0"
+          value={item.quantity}
+          onChange={(e) => onUpdate(item.id, "quantity", e.target.value)}
+        />
+      </div>
+      <div className="pd-field field-xs">
+        <label>Unité</label>
+        <input value={item.unit} readOnly placeholder="—" />
+      </div>
+      <button className="pd-delete-btn" onClick={() => onRemove(item.id)}>
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
+}
+
 /* ── Factories ──────────────────────────────────────── */
 const newMaterial = () => ({
   id: Date.now() + Math.random(),
@@ -1008,12 +1071,20 @@ const newPackaging = () => ({
   weight: "",
   unit: "",
 });
+const newEndOfLife = () => ({
+  id: Date.now() + Math.random(),
+  subtype: "",
+  eol_id: "",
+  quantity: "",
+  unit: "",
+});
 
 const emptyForm = () => ({
   materials: [newMaterial()],
   transports: [newTransport()],
   energies: [newEnergy()],
   packagings: [newPackaging()],
+  end_of_lives: [newEndOfLife()],
 });
 
 /* ── Map DB entries back to form rows ───────────────── */
@@ -1067,6 +1138,17 @@ function dbEntriesToForm(entries) {
             unit: e.energy__unit,
           }))
         : [newEnergy()],
+
+    end_of_lives:
+      (entries.end_of_lives || []).length > 0
+        ? entries.end_of_lives.map((e) => ({
+            id: crypto.randomUUID(),
+            subtype: e.end_of_life__subtype,
+            eol_id: e.end_of_life_id,
+            quantity: e.quantity,
+            unit: e.end_of_life__unit,
+          }))
+        : [newEndOfLife()],
   };
 }
 
@@ -1087,6 +1169,7 @@ export default function ProductDescription() {
   const [saveMsg, setSaveMsg] = useState("");
   const [form, setForm] = useState(emptyForm());
   const [limitError, setLimitError] = useState("");
+  const [donutMode, setDonutMode] = useState("eco"); // "eco" | "co2"
 
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
@@ -1142,34 +1225,52 @@ export default function ProductDescription() {
     });
   }, [resultTab, activeProduct, impactResult]);
 
-  /* ── Reset recommendations when scenario changes ── */
-  useEffect(() => {
-    setRecommendations([]);
-  }, [activeScenario]);
-
-  const handleLoadReco = () => {
+  const handleLoadReco = (force = false) => {
     if (!activeScenario) return;
     setRecoLoading(true);
-    api
-      .get(`/api/scenarios/${activeScenario.id}/recommendations/`)
-      .then((data) => {
-        setRecommendations(Array.isArray(data) ? data : []);
-        setRecoLoading(false);
-      });
+    const doFetch = () =>
+      api.get(`/api/scenarios/${activeScenario.id}/recommendations/`)
+        .then((data) => {
+          setRecommendations(Array.isArray(data) ? data : []);
+          setRecoLoading(false);
+        });
+
+    if (force) {
+      // Clear cached recommendations so the engine recomputes
+      api.delete(`/api/scenarios/${activeScenario.id}/recommendations/`)
+        .then(doFetch)
+        .catch(doFetch); // even if delete fails, still fetch
+    } else {
+      doFetch();
+    }
   };
 
-  /* ── Load form entries + stored result when scenario changes ── */
+  /* ── Load form entries + stored result + stored recommendations when scenario changes ── */
   useEffect(() => {
     if (!activeScenario) {
       setForm(emptyForm());
       setImpactResult(null);
+      setRecommendations([]);
       return;
     }
     api.get(`/api/scenarios/${activeScenario.id}/`).then((entries) => {
       if (!entries.error) setForm(dbEntriesToForm(entries));
     });
     api.get(`/api/scenarios/${activeScenario.id}/result/`).then((result) => {
-      setImpactResult(result.error ? null : result);
+      const hasResult = !result.error;
+      setImpactResult(hasResult ? result : null);
+
+      // Auto-load stored recommendations only if scenario has been calculated
+      const limits = getPlanLimits();
+      if (limits.recommendations && hasResult) {
+        setRecoLoading(true);
+        api.get(`/api/scenarios/${activeScenario.id}/recommendations/`).then((data) => {
+          setRecommendations(Array.isArray(data) ? data : []);
+          setRecoLoading(false);
+        });
+      } else {
+        setRecommendations([]);
+      }
     });
   }, [activeScenario]);
 
@@ -1222,7 +1323,12 @@ export default function ProductDescription() {
           distance: parseFloat(t.distance) || 0,
         })),
       productions: [],
-      end_of_lives: [],
+      end_of_lives: form.end_of_lives
+        .filter((e) => e.eol_id)
+        .map((e) => ({
+          end_of_life_id: e.eol_id,
+          quantity: parseFloat(e.quantity) || 0,
+        })),
     };
 
     const result = await api.post(
@@ -1236,6 +1342,18 @@ export default function ProductDescription() {
       setSaveMsg(
         ` Calculé: Éco-coût: €${result.total_eco_cost} · CO₂: ${result.total_carbon_kg} kg`,
       );
+      // For Pro/Enterprise: clear stale cached recommendations and reload
+      const limits = getPlanLimits();
+      if (limits.recommendations) {
+        setRecoLoading(true);
+        setRecommendations([]);
+        // Cache was already cleared by scenario_save on the backend.
+        // Just re-fetch to trigger fresh KNN computation.
+        api.get(`/api/scenarios/${activeScenario.id}/recommendations/`).then((data) => {
+          setRecommendations(Array.isArray(data) ? data : []);
+          setRecoLoading(false);
+        });
+      }
     }
     setSaving(false);
   };
@@ -1564,6 +1682,32 @@ export default function ProductDescription() {
                   />
                 ))}
               </div>
+
+              {/* Fin de vie */}
+              <div className="pd-section">
+                <div className="pd-section-header">
+                  <div>
+                    <p className="pd-section-title">Fin de vie</p>
+                    <p className="pd-section-desc">
+                      Traitements de fin de vie (recyclage, incinération, enfouissement…).
+                    </p>
+                  </div>
+                  <button
+                    className="pd-add-btn"
+                    onClick={() => add("end_of_lives", newEndOfLife)}
+                  >
+                    + Ajouter
+                  </button>
+                </div>
+                {form.end_of_lives.map((item) => (
+                  <EndOfLifeRow
+                    key={item.id}
+                    item={item}
+                    onUpdate={(id, f, v) => update("end_of_lives", id, f, v)}
+                    onRemove={(id) => remove("end_of_lives", id)}
+                  />
+                ))}
+              </div>
             </div>
 
             {saveMsg && <div className="pd-save-msg">{saveMsg}</div>}
@@ -1600,33 +1744,61 @@ export default function ProductDescription() {
                 <>
                   <div className="pd-chart-header">
                     <span className="pd-chart-title">Impact par phase</span>
+                    <div className="pd-donut-toggle">
+                      <button
+                        className={`pd-donut-toggle-btn ${donutMode === "eco" ? "active" : ""}`}
+                        onClick={() => setDonutMode("eco")}
+                      >
+                        Éco-coût
+                      </button>
+                      <button
+                        className={`pd-donut-toggle-btn ${donutMode === "co2" ? "active" : ""}`}
+                        onClick={() => setDonutMode("co2")}
+                      >
+                        CO₂
+                      </button>
+                    </div>
                   </div>
 
-                  <DonutChart result={impactResult} />
+                  <DonutChart result={impactResult} mode={donutMode} />
 
                   {impactResult?.breakdown && (
                     <div className="pd-legend">
-                      {Object.entries(impactResult.breakdown)
-                        .filter(([_, v]) => v > 0)
-                        .map(([key, value]) => {
-                          const total = impactResult.total_eco_cost;
-                          const pct =
-                            total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                          return (
-                            <div key={key} className="pd-legend-item">
-                              <div
-                                className="pd-legend-dot"
-                                style={{ background: PHASE_COLORS[key] }}
-                              />
-                              <span className="pd-legend-label">
-                                {PHASE_LABELS[key]}
-                              </span>
-                              <span className="pd-legend-value">
-                                €{value.toFixed(2)} ({pct}%)
-                              </span>
-                            </div>
-                          );
-                        })}
+                      {(() => {
+                        const activeBreakdown = donutMode === "co2"
+                          ? (impactResult.carbon_breakdown || impactResult.breakdown)
+                          : impactResult.breakdown;
+                        const absSum = Object.values(activeBreakdown)
+                          .reduce((s, v) => s + Math.abs(v), 0);
+                        return Object.entries(activeBreakdown)
+                          .filter(([_, v]) => v !== 0)
+                          .map(([key, value]) => {
+                            const pct = absSum > 0
+                              ? ((Math.abs(value) / absSum) * 100).toFixed(1)
+                              : 0;
+                            const isCredit = value < 0;
+                            return (
+                              <div key={key} className="pd-legend-item">
+                                <div
+                                  className="pd-legend-dot"
+                                  style={{
+                                    background: PHASE_COLORS[key],
+                                    opacity: isCredit ? 0.5 : 1,
+                                  }}
+                                />
+                                <span className="pd-legend-label">
+                                  {PHASE_LABELS[key]}
+                                  {isCredit && <span style={{ fontSize: 9, color: "#4a90c4", marginLeft: 4 }}>crédit</span>}
+                                </span>
+                                <span className="pd-legend-value" style={{ color: isCredit ? "#4a90c4" : undefined }}>
+                                  {donutMode === "co2"
+                                    ? `${value.toFixed(3)} kg`
+                                    : `€${value.toFixed(2)}`} ({pct}%)
+                                </span>
+                              </div>
+                            );
+                          });
+                      })()}
                     </div>
                   )}
 
@@ -1634,16 +1806,20 @@ export default function ProductDescription() {
                     <div className="pd-impact-summary">
                       <div className="pd-impact-item">
                         <span className="pd-impact-label">Éco-coût total</span>
-                        <span className="pd-impact-value green">
+                        <span className={`pd-impact-value ${impactResult.total_eco_cost < 0 ? "credit" : "green"}`}>
                           €{impactResult.total_eco_cost.toFixed(2)}
+                          {impactResult.total_eco_cost < 0 && (
+                            <span className="pd-impact-credit-badge" title="Le traitement de fin de vie génère un crédit environnemental net">crédit</span>
+                          )}
                         </span>
                       </div>
                       <div className="pd-impact-item">
-                        <span className="pd-impact-label">
-                          Empreinte carbone
-                        </span>
-                        <span className="pd-impact-value blue">
+                        <span className="pd-impact-label">Empreinte carbone</span>
+                        <span className={`pd-impact-value ${impactResult.total_carbon_kg < 0 ? "credit" : "blue"}`}>
                           {impactResult.total_carbon_kg.toFixed(2)} kg CO₂
+                          {impactResult.total_carbon_kg < 0 && (
+                            <span className="pd-impact-credit-badge" title="Le traitement de fin de vie compense les émissions de production">crédit</span>
+                          )}
                         </span>
                       </div>
                     </div>
@@ -1670,7 +1846,10 @@ export default function ProductDescription() {
                     {recoLoading ? (
                       <div className="pd-reco-spinner-inline" />
                     ) : (
-                      <button className="pd-reco-btn" onClick={handleLoadReco}>
+                      <button
+                        className="pd-reco-btn"
+                        onClick={() => handleLoadReco(recommendations.length > 0)}
+                      >
                         {recommendations.length > 0 ? (
                           <>
                             <RefreshCw size={13} /> Réanalyser

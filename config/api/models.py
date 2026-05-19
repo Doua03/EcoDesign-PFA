@@ -197,15 +197,6 @@ class EndOfLife(models.Model):
         return self.name
 
 
-class EndOfLifeProduct(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    end_of_life = models.ForeignKey(EndOfLife, on_delete=models.CASCADE)
-    quantity = models.FloatField(default=1)
-
-    class Meta:
-        db_table = 'end_of_life_product'
-
-
 class ScenarioEndOfLife(models.Model):
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
     end_of_life = models.ForeignKey(EndOfLife, on_delete=models.CASCADE)
@@ -246,8 +237,21 @@ class ImpactResult(models.Model):
 # RECOMMENDATION
 # =========================
 class Recommendation(models.Model):
-    impact = models.ForeignKey(ImpactResult, on_delete=models.CASCADE)
-    description = models.TextField()
+    scenario        = models.ForeignKey(Scenario, on_delete=models.CASCADE, related_name='recommendations')
+    phase           = models.CharField(max_length=50)
+    phase_label     = models.CharField(max_length=100)
+    current_name    = models.CharField(max_length=255)
+    current_co2     = models.FloatField()
+    alternative_id  = models.IntegerField()
+    alternative_name = models.CharField(max_length=255)
+    alternative_co2 = models.FloatField()
+    co2_saving      = models.FloatField()
+    eco_saving      = models.FloatField()
+    improvement_pct = models.FloatField()
+    quantity        = models.FloatField()
+    unit            = models.CharField(max_length=50)
+    conseil         = models.TextField()
 
     class Meta:
         db_table = 'recommendation'
+        ordering = ['-co2_saving']

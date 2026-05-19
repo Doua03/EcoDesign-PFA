@@ -1486,3 +1486,55 @@
 .pd-reco-upgrade-btn:hover {
   background: #4a8a20;
 }
+
+/* ── Credit (negative eco-cost / carbon) ── */
+.pd-impact-value.credit {
+  color: #4a90c4;   /* blue — a benefit, not a cost */
+}
+
+.pd-impact-credit-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #eff6ff;
+  color: #4a90c4;
+  border: 1px solid #a8c8e0;
+  border-radius: 20px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* ── Donut mode toggle ── */
+.pd-donut-toggle {
+  display: flex;
+  gap: 2px;
+  background: #f1f2f6;
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.pd-donut-toggle-btn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  background: transparent;
+  color: #636e72;
+  transition: all 0.15s;
+}
+
+.pd-donut-toggle-btn.active {
+  background: #ffffff;
+  color: #2d3436;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.pd-donut-toggle-btn:not(.active):hover {
+  color: #2d3436;
+}

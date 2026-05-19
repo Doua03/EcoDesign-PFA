@@ -7,7 +7,7 @@ from .models import ( Product, Scenario,
     ScenarioMaterial, ScenarioEnergy, ScenarioTransport,
     ScenarioProduction, ScenarioEndOfLife,
     Material, Energy, Transport, Production, EndOfLife,
-    ImpactResult,)
+    ImpactResult, Recommendation,)
 
 logger = logging.getLogger(__name__)
 
@@ -236,26 +236,26 @@ def productions_by_subtype(request):
 
 def end_of_life_subtypes(request):
     subtypes = (
-        Material.objects
+        EndOfLife.objects
         .exclude(subtype="")
         .values_list("subtype", flat=True)
         .distinct()
         .order_by("subtype")
     )
     result = list(subtypes)
-    logger.debug("[material_subtypes] returning %d subtypes: %s", len(result), result)
+    logger.debug("[end_of_life_subtypes] returning %d subtypes: %s", len(result), result)
     return JsonResponse(result, safe=False)
 
 def end_of_life_by_subtype(request):
     subtype = request.GET.get("subtype", "")
     logger.debug("[end_of_life_by_subtype] subtype param: '%s'", subtype)
-    materials = (
-        Material.objects
+    entries = (
+        EndOfLife.objects
         .filter(subtype=subtype)
         .values("id", "name", "short_name", "unit", "eco_cost", "carbon_kg")
         .order_by("name")
     )
-    result = list(materials)
+    result = list(entries)
     logger.debug("[end_of_life_by_subtype] returning %d items", len(result))
     return JsonResponse(result, safe=False)
 
@@ -680,12 +680,49 @@ def scenario_recommendations(request, scenario_id):
     except Scenario.DoesNotExist:
         return JsonResponse({'error': 'Scenario not found'}, status=404)
 
+    # DELETE → clear cached recommendations (force recompute on next GET)
+    if request.method == 'DELETE':
+        Recommendation.objects.filter(scenario=scenario).delete()
+        return JsonResponse({'message': 'Recommendations cleared'})
+
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+    # ── Return cached recommendations if they exist ──
+    cached = list(Recommendation.objects.filter(scenario=scenario).values(
+        'phase', 'phase_label', 'current_name', 'current_co2',
+        'alternative_id', 'alternative_name', 'alternative_co2',
+        'co2_saving', 'eco_saving', 'improvement_pct',
+        'quantity', 'unit', 'conseil',
+    ))
+    if cached:
+        return JsonResponse(cached, safe=False)
+
+    # ── Compute, store, and return ──
     try:
         from .ml.recommender import generate_recommendations
         recs = generate_recommendations(scenario)
+
+        Recommendation.objects.bulk_create([
+            Recommendation(
+                scenario=scenario,
+                phase=r['phase'],
+                phase_label=r['phase_label'],
+                current_name=r['current_name'],
+                current_co2=r['current_co2'],
+                alternative_id=r['alternative_id'],
+                alternative_name=r['alternative_name'],
+                alternative_co2=r['alternative_co2'],
+                co2_saving=r['co2_saving'],
+                eco_saving=r['eco_saving'],
+                improvement_pct=r['improvement_pct'],
+                quantity=r['quantity'],
+                unit=r['unit'],
+                conseil=r['conseil'],
+            )
+            for r in recs
+        ])
+
         return JsonResponse(recs, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -710,12 +747,13 @@ def scenario_save(request, scenario_id):
     try:
         data = json.loads(request.body)
  
-        # ── 1. Clear existing entries ──
+        # ── 1. Clear existing entries and stale recommendations ──
         ScenarioMaterial.objects.filter(scenario=scenario).delete()
         ScenarioEnergy.objects.filter(scenario=scenario).delete()
         ScenarioTransport.objects.filter(scenario=scenario).delete()
         ScenarioProduction.objects.filter(scenario=scenario).delete()
         ScenarioEndOfLife.objects.filter(scenario=scenario).delete()
+        Recommendation.objects.filter(scenario=scenario).delete()  # stale after re-save
  
         mat_eco   = mat_co2   = 0.0
         pack_eco  = pack_co2  = 0.0

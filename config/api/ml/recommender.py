@@ -340,8 +340,8 @@ def _recommend_eol(scenario):
         eol      = entry.end_of_life
         qty      = entry.quantity
         curr_co2 = eol.carbon_kg * qty
-        if curr_co2 <= 0:
-            continue
+        # For EOL we allow any starting value (positive or negative carbon)
+        # The goal is to find alternatives with a LOWER carbon_kg (more credit or less emission)
 
         pool = [c for c in full_pool if c["id"] != eol.id]
         alts = _knn_better_alternatives(
@@ -349,16 +349,54 @@ def _recommend_eol(scenario):
         )
 
         for alt in alts:
-            r = _rec(
-                "fin_de_vie", "Fin de vie", eol.name, alt,
-                curr_co2,
-                curr_co2 - alt["carbon_kg"] * qty,
-                (eol.eco_cost - alt["eco_cost"]) * qty,
-                qty, eol.unit,
-            )
+            alt_co2   = alt["carbon_kg"] * qty
+            saving_co2 = curr_co2 - alt_co2   # positive = alt emits less (or credits more)
+            saving_eco = (eol.eco_cost - alt["eco_cost"]) * qty
+
+            r = _rec_eol(eol.name, alt, curr_co2, saving_co2, saving_eco, qty, eol.unit)
             if r:
                 recs.append(r)
     return recs
+
+
+def _rec_eol(current_name, alt, current_co2_total, saving_co2, saving_eco, qty, unit):
+    """Build a recommendation dict for end-of-life phase.
+    saving_co2 > 0 means the alternative has lower carbon (better).
+    saving_co2 < 0 means the alternative has higher carbon (worse) — skip.
+    """
+    if saving_co2 <= 0.0001:
+        return None
+    # For percentage: use absolute value of current to avoid division issues with negatives
+    base = abs(current_co2_total) if current_co2_total != 0 else 1
+    pct = round((saving_co2 / base) * 100, 1)
+
+    cur  = _short(current_name)
+    alt_name = _short(alt["name"])
+    save = f"{saving_co2:.2f} kg CO₂ (−{pct}%)"
+    eco  = (
+        f" Cela représente également une économie d'éco-coût de €{saving_eco:.2f}."
+        if saving_eco > 0.01 else ""
+    )
+    conseil = (
+        f"Optez pour « {alt_name} » comme méthode de traitement en fin de vie "
+        f"au lieu de « {cur} ». "
+        f"Réduction : {save}.{eco}"
+    )
+    return {
+        "phase":            "fin_de_vie",
+        "phase_label":      "Fin de vie",
+        "current_name":     current_name,
+        "current_co2":      round(current_co2_total, 4),
+        "alternative_id":   alt["id"],
+        "alternative_name": alt["name"],
+        "alternative_co2":  round(alt["carbon_kg"] * qty, 4),
+        "co2_saving":       round(saving_co2, 4),
+        "eco_saving":       round(saving_eco, 4),
+        "improvement_pct":  pct,
+        "quantity":         qty,
+        "unit":             unit,
+        "conseil":          conseil,
+    }
 
 
 # ─── Public entry point ────────────────────────────────────────────────────────
