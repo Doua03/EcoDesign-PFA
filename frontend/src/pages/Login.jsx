@@ -33,11 +33,11 @@ const Login = () => {
         localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/app');                 // ← redirect to the main app
       } else {
-        setError(data.error || 'Login failed');
+        setError(data.error || 'Connexion échouée');
       }
 
     } catch (err) {
-      setError('Server error. Please try again.');
+      setError('Erreur du serveur. Veuillez réessayer.');
     }
 
     setLoading(false);
@@ -47,8 +47,8 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
 
-        <h2>Welcome back</h2>
-        <p className="login-sub">Log in to your account to continue</p>
+        <h2>Bienvenue</h2>
+        <p className="login-sub">Connecte-toi à ton compte pour continuer</p>
 
         <form onSubmit={handleSubmit}>
           <div className="login-field">
@@ -64,7 +64,7 @@ const Login = () => {
           </div>
 
           <div className="login-field">
-            <label>Password</label>
+            <label>Mot de passe</label>
             <input
               type="password"
               name="password"
@@ -76,19 +76,19 @@ const Login = () => {
           </div>
 
           <div className="login-forgot">
-            <span onClick={() => navigate('/forgot-password')}>Forgot password?</span>
+            <span onClick={() => navigate('/forgot-password')}>Mot de passe oublié?</span>
           </div>
 
           {error && <p className="login-error">{error}</p>}
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? 'Logging in...' : 'Log in'}
+            {loading ? 'Connexion en cours...' : 'Se connecter'}
           </button>
         </form>
 
         <p className="login-switch">
-          Don't have an account?{' '}
-          <span onClick={() => navigate('/register')}>Sign up</span>
+          Tu n'as pas de compte?{' '}
+          <span onClick={() => navigate('/register')}>S'inscrire</span>
         </p>
 
       </div>

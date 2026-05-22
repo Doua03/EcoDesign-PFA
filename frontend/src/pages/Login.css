@@ -3,8 +3,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0fdf6 0%, #eafaf1 100%);
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+background: linear-gradient(
+  135deg,
+  #f3faee 0%,
+  #dff1d2 30%,
+  #b9de9e 65%,
+  #7fc24f 100%
+);  font-family: 'DM Sans', 'Segoe UI', sans-serif;  font-family: 'DM Sans', 'Segoe UI', sans-serif;
 }
 
 .login-card {
@@ -74,7 +79,7 @@
 
 .login-forgot span {
   font-size: 13px;
-  color: #2ecc71;
+  color: #5EAA28;
   cursor: pointer;
   font-weight: 600;
   transition: color 0.2s;
@@ -98,7 +103,7 @@
 /* Button */
 .login-btn {
   width: 100%;
-  background: #2ecc71;
+  background: #5EAA28;
   color: #ffffff;
   border: none;
   border-radius: 100px;
@@ -112,7 +117,7 @@
 }
 
 .login-btn:hover:not(:disabled) {
-  background: #1a9e52;
+  background: #5EAA28;
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(46, 204, 113, 0.35);
 }
@@ -130,7 +135,7 @@
 }
 
 .login-switch span {
-  color: #2ecc71;
+  color: #5EAA28;
   font-weight: 700;
   cursor: pointer;
   transition: color 0.2s;

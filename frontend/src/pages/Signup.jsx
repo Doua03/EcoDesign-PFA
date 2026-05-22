@@ -66,8 +66,8 @@ const Signup = () => {
   return (
     <div className="signup-container">
       <div className="signup-card">
-        <h2>Welcome back</h2>
-        <p className="signup-sub">Create an account to continue</p>
+        <h2>Bienvenue</h2>
+        <p className="signup-sub">Créer un compte pour continuer</p>
         <form onSubmit={handleSubmit}>
          <div className="signup-field">
           <label>Email</label>
@@ -82,11 +82,11 @@ const Signup = () => {
          </div>    
         
         <div className="signup-field">
-          <label>Username</label>
+          <label>Nom d'utilisateur</label>
           <input
             type="text"
             name="name"
-            placeholder="Username"
+            placeholder="Nom d'utilisateur"
             value={formData.name}
             onChange={handleChange}
             required
@@ -94,11 +94,11 @@ const Signup = () => {
         </div>
 
         <div className="signup-field">
-          <label>Password</label>
+          <label>Mot de passe</label>
           <input
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="Mot de passe"
             value={formData.password}
             onChange={handleChange}
             required
@@ -107,19 +107,19 @@ const Signup = () => {
         </div>
           <label className="checkbox-label">
             <input type="checkbox" required />
-            I agree to the terms and conditions
+            Je suis d'accord avec les conditions d'utilisation
           </label>
 
           {error && <p className="error">{error}</p>}
 
           <button type="submit"  className="signup-btn" disabled={loading}>
-            {loading ? "Signing up..." : "Sign up"}
+            {loading ? "Inscription en cours..." : "S'inscrire"}
           </button>
         </form>
 
         <p className="signup-switch">
-          Already have an account?{' '}
-          <span onClick={() => navigate('/login')}>Login</span>
+          Tu as déjà un compte?{' '}
+          <span onClick={() => navigate('/login')}>Se connecter</span>
         </p>
       </div>
     </div>

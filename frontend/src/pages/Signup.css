@@ -4,8 +4,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0fdf6 0%, #eafaf1 100%);
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+background: linear-gradient(
+  135deg,
+  #f3faee 0%,
+  #dff1d2 30%,
+  #b9de9e 65%,
+  #7fc24f 100%
+);  font-family: 'DM Sans', 'Segoe UI', sans-serif;
 }
 
 .signup-card {
@@ -59,7 +64,7 @@
 }
 
 .signup-field input:focus {
-  border-color: #2ecc71;
+  border-color: #5EAA28;
   background: #ffffff;
 }
 
@@ -81,7 +86,7 @@
 
 .signup-btn {
   width: 100%;
-  background: #2ecc71;
+  background: #5EAA28;
   color: #ffffff;
   border: none;
   border-radius: 100px;
@@ -112,7 +117,7 @@
 }
 
 .signup-switch span {
-  color: #2ecc71;
+  color: #5EAA28;
   font-weight: 700;
   cursor: pointer;
   transition: color 0.2s;

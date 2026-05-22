@@ -405,12 +405,10 @@ function CompareBarChart({ data, valueKey, title, format }) {
 
 function CompareStackedChart({ data }) {
   const maxTotal = Math.max(
-    ...data.map((d) => Object.values(d.breakdown).reduce((a, b) => a + b, 0)),
+    ...data.map((d) =>
+      Object.values(d.breakdown).filter((v) => v > 0).reduce((a, b) => a + b, 0)
+    ),
   );
-  const LABEL_W = 110,
-    CHART_W = 200,
-    BAR_H = 26,
-    GAP = 14;
   const phases = Object.keys(PHASE_COLORS);
 
   return (
@@ -418,50 +416,49 @@ function CompareStackedChart({ data }) {
       <div className="pd-cmp-section-title">
         Répartition par phase (éco-coût €)
       </div>
-      <svg
-        width="100%"
-        viewBox={`0 0 ${LABEL_W + CHART_W} ${data.length * (BAR_H + GAP)}`}
-        style={{ display: "block", overflow: "visible" }}
-      >
-        {data.map((d, i) => {
-          const y = i * (BAR_H + GAP);
-          let xOff = 0;
-          return (
-            <g key={d.id}>
-              <text
-                x={LABEL_W - 6}
-                y={y + BAR_H / 2 + 4}
-                textAnchor="end"
-                fontSize="11"
-                fill="#636e72"
-                fontFamily="Nunito,sans-serif"
+      {data.map((d) => {
+        const rowTotal = Object.values(d.breakdown)
+          .filter((v) => v > 0)
+          .reduce((a, b) => a + b, 0);
+        const rowPct = maxTotal > 0 ? (rowTotal / maxTotal) * 100 : 0;
+        return (
+          <div key={d.id} className="pd-cmp-row">
+            <span className="pd-cmp-label" title={d.name}>
+              {d.name.length > 16 ? d.name.slice(0, 15) + "…" : d.name}
+            </span>
+            <div className="pd-cmp-track">
+              <div
+                style={{
+                  width: `${rowPct}%`,
+                  display: "flex",
+                  height: "100%",
+                  borderRadius: 4,
+                  overflow: "hidden",
+                }}
               >
-                {d.name.length > 14 ? d.name.slice(0, 13) + "…" : d.name}
-              </text>
-              {phases.map((phase) => {
-                const val = d.breakdown[phase] || 0;
-                if (val <= 0) return null;
-                const segW = maxTotal > 0 ? (val / maxTotal) * CHART_W : 0;
-                const rx = xOff === 0 ? 3 : 0;
-                const rect = (
-                  <rect
-                    key={phase}
-                    x={LABEL_W + xOff}
-                    y={y}
-                    width={segW}
-                    height={BAR_H}
-                    rx={rx}
-                    fill={PHASE_COLORS[phase]}
-                    opacity={0.9}
-                  />
-                );
-                xOff += segW;
-                return rect;
-              })}
-            </g>
-          );
-        })}
-      </svg>
+                {phases.map((phase) => {
+                  const val = d.breakdown[phase] || 0;
+                  if (val <= 0) return null;
+                  const segPct = rowTotal > 0 ? (val / rowTotal) * 100 : 0;
+                  return (
+                    <div
+                      key={phase}
+                      style={{
+                        width: `${segPct}%`,
+                        background: PHASE_COLORS[phase],
+                        opacity: 0.9,
+                        flexShrink: 0,
+                      }}
+                      title={`${PHASE_LABELS[phase]}: €${val.toFixed(2)}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+            <span className="pd-cmp-value">€{rowTotal.toFixed(2)}</span>
+          </div>
+        );
+      })}
       <div className="pd-cmp-legend">
         {Object.entries(PHASE_LABELS).map(([key, label]) => (
           <div key={key} className="pd-cmp-legend-item">

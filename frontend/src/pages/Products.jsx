@@ -341,7 +341,7 @@ export default function Products() {
               <th>Nom</th>
               <th>Description</th>
               <th>Scénario par défaut</th>
-              <th>Actions</th>
+              <th style={{ textAlign: "center" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
