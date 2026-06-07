@@ -60,19 +60,19 @@ const api = {
 
 /* ── Phase colors & labels ──────────────────────────── */
 const PHASE_COLORS = {
-  materiaux:  "#5EAA28",   // brand green
-  packaging:  "#f0a050",   // warm orange
-  transport:  "#e07b8a",   // warm rose
-  energie:    "#4a90c4",   // medium blue
-  production: "#8b6fc4",   // medium purple
-  fin_de_vie: "#c4a84a",   // warm amber
+  materiaux: "#5EAA28", // brand green
+  packaging: "#f0a050", // warm orange
+  transport: "#e07b8a", // warm rose
+  energie: "#4a90c4", // medium blue
+  production: "#8b6fc4", // medium purple
+  fin_de_vie: "#c4a84a", // warm amber
 };
 
 const PHASE_LABELS = {
-  materiaux:  "Matières premières",
-  packaging:  "Packaging",
-  transport:  "Transport",
-  energie:    "Énergie",
+  materiaux: "Matières premières",
+  packaging: "Packaging",
+  transport: "Transport",
+  energie: "Énergie",
   production: "Production",
   fin_de_vie: "Fin de vie",
 };
@@ -98,8 +98,8 @@ function DonutChart({ result, mode = "eco" }) {
 
   const isCO2 = mode === "co2";
   const breakdown = isCO2
-    ? (result.carbon_breakdown || result.breakdown || {})
-    : (result.breakdown || {});
+    ? result.carbon_breakdown || result.breakdown || {}
+    : result.breakdown || {};
   const totalValue = isCO2 ? result.total_carbon_kg : result.total_eco_cost;
 
   const absSum = Object.values(breakdown).reduce((s, v) => s + Math.abs(v), 0);
@@ -120,11 +120,20 @@ function DonutChart({ result, mode = "eco" }) {
     return (
       <div className="pd-donut-wrapper">
         <svg className="pd-donut-svg" viewBox="0 0 180 180">
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f2f6" strokeWidth={stroke} />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={r}
+            fill="none"
+            stroke="#f1f2f6"
+            strokeWidth={stroke}
+          />
         </svg>
         <div className="pd-donut-center">
           <span className="pd-donut-value">{isCO2 ? "0 kg" : "€0"}</span>
-          <span className="pd-donut-label">{isCO2 ? "CO₂ total" : "Éco-coût total"}</span>
+          <span className="pd-donut-label">
+            {isCO2 ? "CO₂ total" : "Éco-coût total"}
+          </span>
         </div>
       </div>
     );
@@ -135,7 +144,14 @@ function DonutChart({ result, mode = "eco" }) {
   return (
     <div className="pd-donut-wrapper">
       <svg className="pd-donut-svg" viewBox="0 0 180 180">
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f2f6" strokeWidth={stroke} />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill="none"
+          stroke="#f1f2f6"
+          strokeWidth={stroke}
+        />
         {segments.map((s, i) => {
           const dash = (s.pct / 100) * circ;
           const gap = circ - dash;
@@ -144,7 +160,9 @@ function DonutChart({ result, mode = "eco" }) {
           return (
             <circle
               key={i}
-              cx={cx} cy={cy} r={r}
+              cx={cx}
+              cy={cy}
+              r={r}
               fill="none"
               stroke={s.color}
               strokeWidth={stroke}
@@ -165,7 +183,9 @@ function DonutChart({ result, mode = "eco" }) {
         <span className="pd-donut-label">
           {totalValue < 0
             ? "Crédit net"
-            : isCO2 ? "CO₂ total" : "Éco-coût total"}
+            : isCO2
+              ? "CO₂ total"
+              : "Éco-coût total"}
         </span>
       </div>
     </div>
@@ -198,17 +218,25 @@ function AltRow({ rec, isBest }) {
           </span>
         </div>
         <div className="pd-reco-alt-savings">
-          <span className="pd-reco-save-co2">-{rec.co2_saving.toFixed(2)} kg CO₂</span>
+          <span className="pd-reco-save-co2">
+            -{rec.co2_saving.toFixed(2)} kg CO₂
+          </span>
           <span className="pd-reco-save-pct">-{rec.improvement_pct}%</span>
           {rec.eco_saving > 0.01 && (
-            <span className="pd-reco-save-eco">-€{rec.eco_saving.toFixed(2)}</span>
+            <span className="pd-reco-save-eco">
+              -€{rec.eco_saving.toFixed(2)}
+            </span>
           )}
         </div>
       </div>
       <p className="pd-reco-conseil">{rec.conseil}</p>
       <div className="pd-reco-meta">
-        <span>{rec.quantity} {rec.unit}</span>
-        <span>{rec.current_co2.toFixed(3)} → {rec.alternative_co2.toFixed(3)} kg CO₂</span>
+        <span>
+          {rec.quantity} {rec.unit}
+        </span>
+        <span>
+          {rec.current_co2.toFixed(3)} → {rec.alternative_co2.toFixed(3)} kg CO₂
+        </span>
       </div>
     </div>
   );
@@ -225,17 +253,23 @@ function RecoGroupCard({ phase, phaseLabel, currentName, alternatives }) {
       {/* Group header */}
       <div className="pd-reco-group-header">
         <div className="pd-reco-group-phase">
-          <span className="pd-reco-phase-icon"
-            style={{ color: PHASE_COLORS[phase] || "#636e72" }}>
+          <span
+            className="pd-reco-phase-icon"
+            style={{ color: PHASE_COLORS[phase] || "#636e72" }}
+          >
             {PHASE_ICONS[phase] || <Layers size={14} />}
           </span>
-          <span className="pd-reco-phase-label"
-            style={{ color: PHASE_COLORS[phase] || "#636e72" }}>
+          <span
+            className="pd-reco-phase-label"
+            style={{ color: PHASE_COLORS[phase] || "#636e72" }}
+          >
             {phaseLabel}
           </span>
         </div>
         <span className="pd-reco-group-item-name" title={currentName}>
-          {currentName.length > 45 ? currentName.slice(0, 44) + "…" : currentName}
+          {currentName.length > 45
+            ? currentName.slice(0, 44) + "…"
+            : currentName}
         </span>
       </div>
 
@@ -245,9 +279,8 @@ function RecoGroupCard({ phase, phaseLabel, currentName, alternatives }) {
       {/* Other alternatives — collapsible */}
       {others.length > 0 && (
         <>
-          {expanded && others.map((r, i) => (
-            <AltRow key={i} rec={r} isBest={false} />
-          ))}
+          {expanded &&
+            others.map((r, i) => <AltRow key={i} rec={r} isBest={false} />)}
           <button
             className="pd-reco-toggle-btn"
             onClick={() => setExpanded((v) => !v)}
@@ -275,7 +308,10 @@ function RecommendationsPanel({ recommendations, loading }) {
     return (
       <div className="pd-reco-state">
         <CheckCircle size={32} color="#5EAA28" strokeWidth={1.5} />
-        <p>Aucune amélioration significative détectée — votre scénario est déjà bien optimisé !</p>
+        <p>
+          Aucune amélioration significative détectée — votre scénario est déjà
+          bien optimisé !
+        </p>
       </div>
     );
   }
@@ -298,24 +334,36 @@ function RecommendationsPanel({ recommendations, loading }) {
     }
   }
 
-  const totalSavingCO2 = groups.reduce((s, g) => s + g.alternatives[0].co2_saving, 0);
-  const totalSavingEco = groups.reduce((s, g) => s + g.alternatives[0].eco_saving, 0);
+  const totalSavingCO2 = groups.reduce(
+    (s, g) => s + g.alternatives[0].co2_saving,
+    0,
+  );
+  const totalSavingEco = groups.reduce(
+    (s, g) => s + g.alternatives[0].eco_saving,
+    0,
+  );
 
   return (
     <div className="pd-reco-content">
       {/* Summary bar */}
       <div className="pd-reco-summary">
         <div className="pd-reco-summary-item">
-          <span className="pd-reco-summary-val">-{totalSavingCO2.toFixed(2)} kg CO₂</span>
+          <span className="pd-reco-summary-val">
+            -{totalSavingCO2.toFixed(2)} kg CO₂
+          </span>
           <span className="pd-reco-summary-lbl">Potentiel de réduction</span>
         </div>
         <div className="pd-reco-summary-item">
-          <span className="pd-reco-summary-val">{groups.length} suggestion{groups.length > 1 ? "s" : ""}</span>
+          <span className="pd-reco-summary-val">
+            {groups.length} suggestion{groups.length > 1 ? "s" : ""}
+          </span>
           <span className="pd-reco-summary-lbl">Améliorations identifiées</span>
         </div>
         {totalSavingEco > 0.01 && (
           <div className="pd-reco-summary-item">
-            <span className="pd-reco-summary-val">-€{totalSavingEco.toFixed(2)}</span>
+            <span className="pd-reco-summary-val">
+              -€{totalSavingEco.toFixed(2)}
+            </span>
             <span className="pd-reco-summary-lbl">Économie éco-coût</span>
           </div>
         )}
@@ -406,7 +454,9 @@ function CompareBarChart({ data, valueKey, title, format }) {
 function CompareStackedChart({ data }) {
   const maxTotal = Math.max(
     ...data.map((d) =>
-      Object.values(d.breakdown).filter((v) => v > 0).reduce((a, b) => a + b, 0)
+      Object.values(d.breakdown)
+        .filter((v) => v > 0)
+        .reduce((a, b) => a + b, 0),
     ),
   );
   const phases = Object.keys(PHASE_COLORS);
@@ -997,7 +1047,9 @@ function EndOfLifeRow({ item, onUpdate, onRemove }) {
         >
           <option value="">-- Sélectionner --</option>
           {subtypes.map((s, i) => (
-            <option key={i} value={s}>{s}</option>
+            <option key={i} value={s}>
+              {s}
+            </option>
           ))}
         </select>
       </div>
@@ -1014,7 +1066,9 @@ function EndOfLifeRow({ item, onUpdate, onRemove }) {
         >
           <option value="">-- Sélectionner --</option>
           {entries.map((en) => (
-            <option key={en.id} value={en.id}>{en.name}</option>
+            <option key={en.id} value={en.id}>
+              {en.name}
+            </option>
           ))}
         </select>
       </div>
@@ -1226,7 +1280,8 @@ export default function ProductDescription() {
     if (!activeScenario) return;
     setRecoLoading(true);
     const doFetch = () =>
-      api.get(`/api/scenarios/${activeScenario.id}/recommendations/`)
+      api
+        .get(`/api/scenarios/${activeScenario.id}/recommendations/`)
         .then((data) => {
           setRecommendations(Array.isArray(data) ? data : []);
           setRecoLoading(false);
@@ -1234,7 +1289,8 @@ export default function ProductDescription() {
 
     if (force) {
       // Clear cached recommendations so the engine recomputes
-      api.delete(`/api/scenarios/${activeScenario.id}/recommendations/`)
+      api
+        .delete(`/api/scenarios/${activeScenario.id}/recommendations/`)
         .then(doFetch)
         .catch(doFetch); // even if delete fails, still fetch
     } else {
@@ -1261,10 +1317,12 @@ export default function ProductDescription() {
       const limits = getPlanLimits();
       if (limits.recommendations && hasResult) {
         setRecoLoading(true);
-        api.get(`/api/scenarios/${activeScenario.id}/recommendations/`).then((data) => {
-          setRecommendations(Array.isArray(data) ? data : []);
-          setRecoLoading(false);
-        });
+        api
+          .get(`/api/scenarios/${activeScenario.id}/recommendations/`)
+          .then((data) => {
+            setRecommendations(Array.isArray(data) ? data : []);
+            setRecoLoading(false);
+          });
       } else {
         setRecommendations([]);
       }
@@ -1336,9 +1394,7 @@ export default function ProductDescription() {
       setSaveMsg(` ${result.error}`);
     } else {
       setImpactResult(result);
-      setSaveMsg(
-        ` Calculé: Éco-coût: €${result.total_eco_cost} · CO₂: ${result.total_carbon_kg} kg`,
-      );
+      setSaveMsg("");
       // For Pro/Enterprise: clear stale cached recommendations and reload
       const limits = getPlanLimits();
       if (limits.recommendations) {
@@ -1346,10 +1402,12 @@ export default function ProductDescription() {
         setRecommendations([]);
         // Cache was already cleared by scenario_save on the backend.
         // Just re-fetch to trigger fresh KNN computation.
-        api.get(`/api/scenarios/${activeScenario.id}/recommendations/`).then((data) => {
-          setRecommendations(Array.isArray(data) ? data : []);
-          setRecoLoading(false);
-        });
+        api
+          .get(`/api/scenarios/${activeScenario.id}/recommendations/`)
+          .then((data) => {
+            setRecommendations(Array.isArray(data) ? data : []);
+            setRecoLoading(false);
+          });
       }
     }
     setSaving(false);
@@ -1359,7 +1417,9 @@ export default function ProductDescription() {
   const handleCreateProduct = (p) => {
     const limits = getPlanLimits();
     if (products.length >= limits.maxProducts) {
-      setLimitError(`Vous avez atteint la limite de ${limits.maxProducts} produits du plan Gratuit.`);
+      setLimitError(
+        `Vous avez atteint la limite de ${limits.maxProducts} produits du plan Gratuit.`,
+      );
       setShowCreateProduct(false);
       return;
     }
@@ -1389,13 +1449,17 @@ export default function ProductDescription() {
     }
     const limits = getPlanLimits();
     if (scenarios.length >= limits.maxScenariosPerProduct) {
-      setLimitError(`Vous avez atteint la limite de ${limits.maxScenariosPerProduct} scénarios par produit du plan Gratuit.`);
+      setLimitError(
+        `Vous avez atteint la limite de ${limits.maxScenariosPerProduct} scénarios par produit du plan Gratuit.`,
+      );
       if (showCreateScenario) setShowCreateScenario(false);
       return;
     }
     setScenarioAddError("");
     setLimitError("");
-    const s = await api.post(`/api/products/${activeProduct.id}/scenarios/`, { name });
+    const s = await api.post(`/api/products/${activeProduct.id}/scenarios/`, {
+      name,
+    });
     if (s.error === "plan_limit") {
       setLimitError(s.detail);
       return;
@@ -1470,16 +1534,29 @@ export default function ProductDescription() {
       {/* ── Plan limit banner ── */}
       {limitError && (
         <div className="pd-limit-banner">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round" width="15" height="15">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            width="15"
+            height="15"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
           <span>{limitError}</span>
-          <button className="pd-limit-upgrade" onClick={() => navigate("/pricing")}>
+          <button
+            className="pd-limit-upgrade"
+            onClick={() => navigate("/pricing")}
+          >
             Passer au Pro →
           </button>
-          <button className="pd-limit-close" onClick={() => setLimitError("")}>×</button>
+          <button className="pd-limit-close" onClick={() => setLimitError("")}>
+            ×
+          </button>
         </div>
       )}
 
@@ -1520,7 +1597,9 @@ export default function ProductDescription() {
             onClick={() => {
               const limits = getPlanLimits();
               if (products.length >= limits.maxProducts) {
-                setLimitError(`Vous avez atteint la limite de ${limits.maxProducts} produits du plan Gratuit.`);
+                setLimitError(
+                  `Vous avez atteint la limite de ${limits.maxProducts} produits du plan Gratuit.`,
+                );
                 return;
               }
               setShowCreateProduct(true);
@@ -1686,7 +1765,8 @@ export default function ProductDescription() {
                   <div>
                     <p className="pd-section-title">Fin de vie</p>
                     <p className="pd-section-desc">
-                      Traitements de fin de vie (recyclage, incinération, enfouissement…).
+                      Traitements de fin de vie (recyclage, incinération,
+                      enfouissement…).
                     </p>
                   </div>
                   <button
@@ -1762,17 +1842,22 @@ export default function ProductDescription() {
                   {impactResult?.breakdown && (
                     <div className="pd-legend">
                       {(() => {
-                        const activeBreakdown = donutMode === "co2"
-                          ? (impactResult.carbon_breakdown || impactResult.breakdown)
-                          : impactResult.breakdown;
-                        const absSum = Object.values(activeBreakdown)
-                          .reduce((s, v) => s + Math.abs(v), 0);
+                        const activeBreakdown =
+                          donutMode === "co2"
+                            ? impactResult.carbon_breakdown ||
+                              impactResult.breakdown
+                            : impactResult.breakdown;
+                        const absSum = Object.values(activeBreakdown).reduce(
+                          (s, v) => s + Math.abs(v),
+                          0,
+                        );
                         return Object.entries(activeBreakdown)
                           .filter(([_, v]) => v !== 0)
                           .map(([key, value]) => {
-                            const pct = absSum > 0
-                              ? ((Math.abs(value) / absSum) * 100).toFixed(1)
-                              : 0;
+                            const pct =
+                              absSum > 0
+                                ? ((Math.abs(value) / absSum) * 100).toFixed(1)
+                                : 0;
                             const isCredit = value < 0;
                             return (
                               <div key={key} className="pd-legend-item">
@@ -1785,12 +1870,28 @@ export default function ProductDescription() {
                                 />
                                 <span className="pd-legend-label">
                                   {PHASE_LABELS[key]}
-                                  {isCredit && <span style={{ fontSize: 9, color: "#4a90c4", marginLeft: 4 }}>crédit</span>}
+                                  {isCredit && (
+                                    <span
+                                      style={{
+                                        fontSize: 9,
+                                        color: "#4a90c4",
+                                        marginLeft: 4,
+                                      }}
+                                    >
+                                      crédit
+                                    </span>
+                                  )}
                                 </span>
-                                <span className="pd-legend-value" style={{ color: isCredit ? "#4a90c4" : undefined }}>
+                                <span
+                                  className="pd-legend-value"
+                                  style={{
+                                    color: isCredit ? "#4a90c4" : undefined,
+                                  }}
+                                >
                                   {donutMode === "co2"
                                     ? `${value.toFixed(3)} kg`
-                                    : `€${value.toFixed(2)}`} ({pct}%)
+                                    : `€${value.toFixed(2)}`}{" "}
+                                  ({pct}%)
                                 </span>
                               </div>
                             );
@@ -1803,19 +1904,35 @@ export default function ProductDescription() {
                     <div className="pd-impact-summary">
                       <div className="pd-impact-item">
                         <span className="pd-impact-label">Éco-coût total</span>
-                        <span className={`pd-impact-value ${impactResult.total_eco_cost < 0 ? "credit" : "green"}`}>
+                        <span
+                          className={`pd-impact-value ${impactResult.total_eco_cost < 0 ? "credit" : "green"}`}
+                        >
                           €{impactResult.total_eco_cost.toFixed(2)}
                           {impactResult.total_eco_cost < 0 && (
-                            <span className="pd-impact-credit-badge" title="Le traitement de fin de vie génère un crédit environnemental net">crédit</span>
+                            <span
+                              className="pd-impact-credit-badge"
+                              title="Le traitement de fin de vie génère un crédit environnemental net"
+                            >
+                              crédit
+                            </span>
                           )}
                         </span>
                       </div>
                       <div className="pd-impact-item">
-                        <span className="pd-impact-label">Empreinte carbone</span>
-                        <span className={`pd-impact-value ${impactResult.total_carbon_kg < 0 ? "credit" : "blue"}`}>
+                        <span className="pd-impact-label">
+                          Empreinte carbone
+                        </span>
+                        <span
+                          className={`pd-impact-value ${impactResult.total_carbon_kg < 0 ? "credit" : "blue"}`}
+                        >
                           {impactResult.total_carbon_kg.toFixed(2)} kg CO₂
                           {impactResult.total_carbon_kg < 0 && (
-                            <span className="pd-impact-credit-badge" title="Le traitement de fin de vie compense les émissions de production">crédit</span>
+                            <span
+                              className="pd-impact-credit-badge"
+                              title="Le traitement de fin de vie compense les émissions de production"
+                            >
+                              crédit
+                            </span>
                           )}
                         </span>
                       </div>
@@ -1829,15 +1946,15 @@ export default function ProductDescription() {
             {/* END results card */}
 
             {/* ══ Recommendations panel ══ */}
-            {impactResult && (
-              getPlanLimits().recommendations ? (
+            {impactResult &&
+              (getPlanLimits().recommendations ? (
                 <div className="pd-reco-card">
                   <div className="pd-reco-header">
                     <div>
                       <h3 className="pd-reco-title">Recommandations IA</h3>
                       <p className="pd-reco-subtitle">
-                        Analyse KNN sur <strong>{activeScenario?.name}</strong> —
-                        suggestions d'optimisation par phase
+                        Analyse KNN sur <strong>{activeScenario?.name}</strong>{" "}
+                        — suggestions d'optimisation par phase
                       </p>
                     </div>
                     {recoLoading ? (
@@ -1845,7 +1962,9 @@ export default function ProductDescription() {
                     ) : (
                       <button
                         className="pd-reco-btn"
-                        onClick={() => handleLoadReco(recommendations.length > 0)}
+                        onClick={() =>
+                          handleLoadReco(recommendations.length > 0)
+                        }
                       >
                         {recommendations.length > 0 ? (
                           <>
@@ -1869,25 +1988,35 @@ export default function ProductDescription() {
               ) : (
                 <div className="pd-reco-card pd-reco-locked">
                   <div className="pd-reco-locked-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
-                      width="28" height="28">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      width="28"
+                      height="28"
+                    >
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
                   </div>
                   <div className="pd-reco-locked-body">
                     <h3 className="pd-reco-title">Recommandations IA</h3>
                     <p className="pd-reco-subtitle">
-                      Les suggestions d'optimisation par phase sont réservées au plan Pro.
+                      Les suggestions d'optimisation par phase sont réservées au
+                      plan Pro.
                     </p>
-                    <button className="pd-reco-upgrade-btn" onClick={() => navigate("/pricing")}>
+                    <button
+                      className="pd-reco-upgrade-btn"
+                      onClick={() => navigate("/pricing")}
+                    >
                       Passer au Pro →
                     </button>
                   </div>
                 </div>
-              )
-            )}
+              ))}
             {/* END recommendations panel */}
 
             {/* Scenario panel */}

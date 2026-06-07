@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Login.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Login.css";
 
 const Login = () => {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,13 +16,13 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('http://localhost:8000/api/login/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',           // ← sends session cookie
+      const response = await fetch("http://localhost:8000/api/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // ← sends session cookie
         body: JSON.stringify(formData),
       });
 
@@ -30,14 +30,13 @@ const Login = () => {
 
       if (response.ok) {
         // Store user info in localStorage for easy access
-        localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/app');                 // ← redirect to the main app
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/app"); // ← redirect to the main app
       } else {
-        setError(data.error || 'Connexion échouée');
+        setError(data.error || "Connexion échouée");
       }
-
     } catch (err) {
-      setError('Erreur du serveur. Veuillez réessayer.');
+      setError("Erreur du serveur. Veuillez réessayer.");
     }
 
     setLoading(false);
@@ -46,6 +45,9 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
+        <div className="auth-back">
+          <Link to="/">← Retour à l'accueil</Link>
+        </div>
 
         <h2>Bienvenue</h2>
         <p className="login-sub">Connecte-toi à ton compte pour continuer</p>
@@ -76,21 +78,22 @@ const Login = () => {
           </div>
 
           <div className="login-forgot">
-            <span onClick={() => navigate('/forgot-password')}>Mot de passe oublié?</span>
+            <span onClick={() => navigate("/forgot-password")}>
+              Mot de passe oublié?
+            </span>
           </div>
 
           {error && <p className="login-error">{error}</p>}
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? 'Connexion en cours...' : 'Se connecter'}
+            {loading ? "Connexion en cours..." : "Se connecter"}
           </button>
         </form>
 
         <p className="login-switch">
-          Tu n'as pas de compte?{' '}
-          <span onClick={() => navigate('/register')}>S'inscrire</span>
+          Tu n'as pas de compte?{" "}
+          <span onClick={() => navigate("/register")}>S'inscrire</span>
         </p>
-
       </div>
     </div>
   );

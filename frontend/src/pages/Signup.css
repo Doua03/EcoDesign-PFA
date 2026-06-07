@@ -126,3 +126,18 @@ background: linear-gradient(
 .signup-switch span:hover {
   color: #1a9e52;
 }
+
+.auth-back {
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.auth-back a {
+  color: #5EAA28;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.auth-back a:hover {
+  color: #1a9e52;
+}
